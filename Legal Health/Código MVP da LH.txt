@@ -1,0 +1,1605 @@
+
+Legal health mvp · JSX
+import { useState, useRef, useEffect } from "react";
+ 
+/* ============================================================
+   LEGAL HEALTH — MVP 2.0 (arquitetura de aplicativo)
+   Inteligência Jurídica para Medicina
+   Login → Dashboard → Inteligência → Juriscore® → Plano →
+   Biblioteca → Perfil
+   ============================================================ */
+ 
+const C = {
+  bg: "#0A0A0A",
+  bg2: "#101010",
+  panel: "#141414",
+  border: "#242424",
+  borderSoft: "#1C1C1C",
+  gold: "#C8A96A",
+  goldSoft: "rgba(200,169,106,0.12)",
+  blue: "#2563EB",
+  blueSoft: "rgba(37,99,235,0.14)",
+  green: "#2FBF7B",
+  greenSoft: "rgba(47,191,123,0.12)",
+  text: "#F5F5F5",
+  dim: "#9CA3AF",
+  faint: "#6B7280",
+  red: "#E0655F",
+  amber: "#D9A648",
+};
+ 
+/* ---------- Logomarca (marca original extraída) ---------- */
+ 
+const LOGO_SRC = "data:image/png;base64,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";
+ 
+function LogoLH({ size = 36 }) {
+  return (
+    <img
+      src={LOGO_SRC}
+      alt="Legal Health"
+      style={{ height: size, width: "auto", display: "block" }}
+      draggable={false}
+    />
+  );
+}
+ 
+function Logo({ size = 36, tagline = true }) {
+  return (
+    <span className="flex items-center gap-3">
+      <LogoLH size={size} />
+      <span className="flex flex-col leading-tight text-left">
+        <span
+          className="font-medium text-sm sm:text-lg"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#EDE3C8", letterSpacing: "0.24em" }}
+        >
+          LEGAL HEALTH
+        </span>
+        {tagline && (
+          <span className="uppercase hidden sm:inline" style={{ color: C.gold, letterSpacing: "0.26em", fontSize: 8 }}>
+            Inteligência Jurídica para Medicina
+          </span>
+        )}
+      </span>
+    </span>
+  );
+}
+ 
+/* ---------- Juriscore® — 5 pilares essenciais ---------- */
+ 
+const PILLARS = [
+  {
+    id: "documental",
+    name: "Documental",
+    desc: "Prontuários, termos de consentimento e contratos",
+    questions: [
+      "Todos os procedimentos de risco são precedidos de Termo de Consentimento (TCLE) específico, com riscos e alternativas descritos?",
+      "Os prontuários são preenchidos de forma completa e contemporânea ao atendimento, incluindo recusas e faltas do paciente?",
+      "As relações com pacientes particulares, parceiros e prestadores estão formalizadas por contratos escritos e revisados?",
+    ],
+  },
+  {
+    id: "regulatorio",
+    name: "Regulatório",
+    desc: "CFM, ANS, ANVISA e LGPD",
+    questions: [
+      "A publicidade e as redes sociais seguem a Resolução do CFM (sem promessa de resultado; antes/depois só com autorização e nos limites)?",
+      "Há adequação à LGPD: política de privacidade, controle de acesso a dados de pacientes e fluxo para pedidos de titulares?",
+      "Licenças, alvarás e exigências de vigilância sanitária do consultório/clínica estão em dia?",
+    ],
+  },
+  {
+    id: "operacional",
+    name: "Operacional",
+    desc: "Rotinas, equipe e protocolos internos",
+    questions: [
+      "Existem protocolos escritos para intercorrências, eventos adversos e comunicação com o paciente?",
+      "A equipe recebe treinamento periódico sobre sigilo, atendimento e obrigações legais?",
+      "Reclamações de pacientes são registradas e tratadas com fluxo definido antes de escalarem?",
+    ],
+  },
+  {
+    id: "historico",
+    name: "Histórico",
+    desc: "Passivo e aprendizados de casos anteriores",
+    questions: [
+      "Você está livre de processos judiciais ou sindicâncias éticas em andamento?",
+      "Notificações extrajudiciais e reclamações formais dos últimos anos foram tratadas e encerradas?",
+      "Aprendizados de eventos passados foram incorporados a protocolos e documentos?",
+    ],
+  },
+  {
+    id: "contextual",
+    name: "Contextual",
+    desc: "Especialidade, exposição e proteção contratada",
+    questions: [
+      "Possui seguro de responsabilidade civil profissional vigente e adequado à sua atuação?",
+      "Se atua em área de alta judicialização (estética, cirurgia, obstetrícia), possui mitigações reforçadas (consentimentos ampliados, registro fotográfico, dupla checagem)?",
+      "A comunicação com pacientes ocorre por canais definidos, com registro adequado (WhatsApp institucional, prontuário)?",
+    ],
+  },
+];
+ 
+const ANSWER_OPTIONS = [
+  { label: "Sim, implementado", value: 2 },
+  { label: "Parcialmente", value: 1 },
+  { label: "Não / Não sei", value: 0 },
+];
+ 
+const MAX_PER_PILLAR = 6;
+ 
+function maturity(score) {
+  if (score >= 76) return { label: "Protegido", color: C.green, desc: "Alta blindagem jurídica. Foco em manutenção e monitoramento contínuo." };
+  if (score >= 51) return { label: "Em Evolução", color: "#7BC96F", desc: "Boa base preventiva, com lacunas específicas a corrigir." };
+  if (score >= 26) return { label: "Exposto", color: C.amber, desc: "Exposição relevante a riscos jurídicos. Ação estruturada recomendada." };
+  return { label: "Crítico", color: C.red, desc: "Exposição severa. Priorize as ações do Plano de Ação imediatamente." };
+}
+ 
+/* ---------- Chamadas à IA ---------- */
+ 
+async function callClaude(messages, system, maxTokens = 1000) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system, messages }),
+  });
+  const data = await response.json();
+  if (!data || !data.content) throw new Error("Resposta vazia da IA");
+  return data.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
+}
+ 
+async function callClaudeSearch(prompt, system, maxTokens = 2200) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: prompt }],
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+    }),
+  });
+  const data = await response.json();
+  if (!data || !data.content) throw new Error("Resposta vazia da IA");
+  return data.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
+}
+ 
+function extractJson(raw) {
+  const clean = raw.replace(/```json|```/g, "").trim();
+  const start = clean.indexOf("{");
+  const end = clean.lastIndexOf("}");
+  return JSON.parse(start >= 0 && end > start ? clean.slice(start, end + 1) : clean);
+}
+ 
+function renderMd(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) =>
+    p.startsWith("**") && p.endsWith("**") ? (
+      <strong key={i} style={{ color: C.text }}>{p.slice(2, -2)}</strong>
+    ) : (
+      <span key={i}>{p}</span>
+    )
+  );
+}
+ 
+/* ---------- Prompts de sistema ---------- */
+ 
+const SYSTEM_AI = `Você é o Legal Health AI, assistente jurídico resolutivo da plataforma Legal Health — a primeira infraestrutura de inteligência jurídica para medicina no Brasil. Especialista em Direito Médico e da Saúde, processos ético-profissionais (CRM/CFM), responsabilidade civil médica, Compliance em saúde, LGPD, normas da ANS e ANVISA.
+ 
+Você NÃO é apenas informativo: você RESOLVE. Quando o usuário pedir uma minuta, defesa, petição, notificação, recurso ou qualquer documento, redija a peça COMPLETA no padrão forense brasileiro, sem se limitar a explicar como fazer.
+ 
+Regras:
+- Responda SEMPRE em português do Brasil.
+- Para dúvidas, use o padrão Legal Health: (1) Resposta direta; (2) Fundamentação; (3) Riscos; (4) Conduta recomendada — de forma concisa.
+- Para pedidos de peças e documentos, entregue o texto integral com estrutura completa (endereçamento, qualificação, fatos, fundamentos, pedidos, fecho), usando [COLCHETES] para dados não informados.
+- Fundamente com CF/88, Código Civil, CDC, CPC, Código de Ética Médica e resoluções CFM/ANS aplicáveis. Nunca invente número de resolução, artigo incerto ou julgado: indique de forma genérica ou marque [VERIFICAR REFERÊNCIA].
+- Seja preventivo e estratégico: aponte riscos e caminhos, não apenas a letra da lei.
+- Encerre com: "⚠️ Minuta/orientação gerada por IA — sujeita à revisão do advogado responsável antes do uso."`;
+ 
+const SYSTEM_PECAS = `Você é o módulo Peças & Defesas da plataforma Legal Health: um redator jurídico sênior especializado em Direito Médico e da Saúde no Brasil, no padrão das melhores ferramentas de IA jurídica do mercado.
+ 
+Sua função é REDIGIR A PEÇA COMPLETA, pronta para revisão do advogado responsável — nunca apenas orientações.
+ 
+Estrutura obrigatória conforme o tipo de peça: endereçamento correto (juízo, câmara do CRM ou destinatário); qualificação completa das partes; síntese dos fatos em narrativa forense; preliminares quando cabíveis; mérito com fundamentação jurídica robusta (CF/88, Código Civil, CDC quando aplicável, CPC, Código de Ética Médica, Código de Processo Ético-Profissional e resoluções CFM/ANS pertinentes); teses defensivas ou pedidos numerados; requerimentos de provas; valor da causa quando aplicável; local, data e fecho forense.
+ 
+Regras:
+- Português jurídico formal e técnico.
+- Use [COLCHETES EM MAIÚSCULAS] para todo dado não informado.
+- Nunca invente número de resolução, artigo específico incerto ou julgado: cite de forma genérica ou marque [VERIFICAR REFERÊNCIA].
+- Argumente com força a favor do cliente indicado, antecipando e neutralizando as teses contrárias.
+- Entregue APENAS o texto da peça, sem comentários antes ou depois.`;
+ 
+const SYSTEM_ANALISE = `Você é o analista de risco da plataforma Legal Health, especialista em Direito Médico brasileiro. Ao receber o texto de uma intimação, citação, notificação, reclamação ou relato de caso, produza análise estratégica estruturada com títulos em negrito markdown:
+ 
+**Resumo do caso** (3-4 linhas)
+**Natureza e órgão** (cível, ético-profissional CRM, administrativo, extrajudicial)
+**Prazos prováveis** (prazos típicos do rito, alertando que devem ser conferidos no caso concreto)
+**Riscos e exposição** (o que está em jogo)
+**Estratégia recomendada** (passos concretos, em ordem)
+**Peça recomendada** (qual documento redigir agora)
+ 
+Não invente referências. Encerre com: "⚠️ Análise gerada por IA — sujeita à revisão do advogado responsável."`;
+ 
+const SYSTEM_JURIS = `Você é o pesquisador de jurisprudência da plataforma Legal Health, focado em Direito Médico e da Saúde no Brasil. Use a busca na web para localizar julgados reais e recentes (STF, STJ, TJs, CFM) sobre o tema pedido.
+ 
+Para cada precedente relevante, indique: tribunal, identificação disponível (número/classe), a tese em suas próprias palavras e como se aplica ao contexto consultado. Sintetize ao final a orientação predominante e as teses úteis para defesa ou petição. Se não encontrar julgados confiáveis, diga expressamente — nunca invente precedentes. Responda em português do Brasil com títulos em negrito markdown. Encerre com: "⚠️ Pesquisa assistida por IA — confira os julgados nas fontes oficiais antes de citar."`;
+ 
+const SYSTEM_JURIMETRIA = `Você é o módulo de Jurimetria da plataforma Legal Health. Use a busca na web para reunir DADOS REAIS sobre a judicialização do tema/especialidade pedido no Brasil (relatórios do CNJ como Justiça em Números, tribunais, pesquisas acadêmicas, notícias técnicas e decisões).
+ 
+Estruture com títulos em negrito markdown:
+**Panorama numérico** (volumes, tendências e crescimento — sempre com a fonte encontrada)
+**Teses que predominam** (o que os tribunais têm decidido)
+**Fatores que mais geram condenação** (padrões extraídos dos julgados e estudos)
+**Faixas indenizatórias observadas** (apenas se houver dado real; caso contrário, declare a lacuna)
+**Leitura estratégica Legal Health** (o que isso significa para a prevenção do consultado)
+ 
+Regra de ouro: NUNCA invente números. Cite apenas o que localizar, com a fonte; lacunas devem ser declaradas abertamente. Responda em português do Brasil. Encerre com: "⚠️ Jurimetria assistida por IA — dados sujeitos a conferência nas fontes citadas."`;
+ 
+const SYSTEM_DOCS = `Você é o leitor de documentos da plataforma Legal Health, especializado em documentos médico-jurídicos brasileiros (intimações, citações, contratos, prontuários, termos, notificações, laudos). Ao receber um documento (PDF ou imagem/foto), faça a leitura integral (OCR quando for imagem) e produza, com títulos em negrito markdown:
+ 
+**Tipo de documento**
+**Partes e órgãos envolvidos**
+**Transcrição dos trechos essenciais** (fiel ao texto lido)
+**Pontos críticos e riscos**
+**Prazos identificados** (com alerta de conferência)
+**Recomendação Legal Health** (próximo passo concreto)
+ 
+Se o documento estiver ilegível em partes, indique exatamente onde. Responda em português do Brasil. Encerre com: "⚠️ Leitura assistida por IA — confira o documento original antes de qualquer providência."`;
+ 
+/* ---------- Componentes de base ---------- */
+ 
+function Badge({ children, tone = "gold" }) {
+  const map = {
+    gold: { c: C.gold, bg: C.goldSoft, bd: "rgba(200,169,106,0.3)" },
+    green: { c: C.green, bg: C.greenSoft, bd: "rgba(47,191,123,0.3)" },
+    blue: { c: "#7FA7F5", bg: C.blueSoft, bd: "rgba(37,99,235,0.4)" },
+  };
+  const t = map[tone] || map.gold;
+  return (
+    <span
+      className="text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full inline-block"
+      style={{ color: t.c, background: t.bg, border: `1px solid ${t.bd}`, letterSpacing: "0.14em" }}
+    >
+      {children}
+    </span>
+  );
+}
+ 
+function Panel({ children, className = "", highlight, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`rounded-2xl p-5 ${className}`}
+      style={{
+        background: highlight ? "linear-gradient(160deg, #1E1808 0%, #121008 100%)" : C.panel,
+        border: `1px solid ${highlight ? "rgba(200,169,106,0.4)" : C.border}`,
+        cursor: onClick ? "pointer" : undefined,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+ 
+function SectionTitle({ eyebrow, title, sub }) {
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-1 h-7 rounded-full" style={{ background: C.gold }} />
+        <h2 className="text-2xl font-bold" style={{ color: C.text }}>{title}</h2>
+        {eyebrow && (
+          <span className="text-xs font-semibold tracking-widest uppercase hidden sm:inline" style={{ color: C.gold, letterSpacing: "0.16em" }}>
+            {eyebrow}
+          </span>
+        )}
+      </div>
+      {sub && <p className="text-sm leading-relaxed" style={{ color: C.dim }}>{sub}</p>}
+    </div>
+  );
+}
+ 
+function Spinner({ label }) {
+  return (
+    <div className="flex items-center gap-3 py-3" style={{ color: C.dim }}>
+      <div className="w-4 h-4 rounded-full animate-spin" style={{ border: `2px solid ${C.border}`, borderTopColor: C.gold }} />
+      <span className="text-sm">{label}</span>
+    </div>
+  );
+}
+ 
+function GoldBtn({ children, onClick, disabled, outline, className = "" }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-6 py-3 rounded-xl font-semibold text-sm disabled:opacity-40 transition-transform hover:scale-105 disabled:hover:scale-100 ${className}`}
+      style={
+        outline
+          ? { border: `1px solid ${C.gold}`, color: C.gold, background: "transparent" }
+          : { background: C.gold, color: "#171204" }
+      }
+    >
+      {children}
+    </button>
+  );
+}
+ 
+function OutputBox({ text, label = "Resultado" }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  }
+  return (
+    <Panel className="mt-4">
+      <div className="flex items-center justify-between mb-3">
+        <Badge>{label}</Badge>
+        <button
+          onClick={copy}
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+          style={{ border: `1px solid ${C.border}`, color: copied ? C.green : C.dim }}
+        >
+          {copied ? "✓ Copiado" : "Copiar texto"}
+        </button>
+      </div>
+      <div
+        className="text-sm whitespace-pre-wrap leading-relaxed rounded-xl p-4 max-h-96 overflow-y-auto"
+        style={{ background: C.bg2, border: `1px solid ${C.borderSoft}`, color: C.dim }}
+      >
+        {renderMd(text)}
+      </div>
+      <p className="text-xs mt-3" style={{ color: C.faint }}>
+        ⚠️ Conteúdo gerado por IA — sujeito à revisão do advogado responsável antes do uso ou protocolo.
+      </p>
+    </Panel>
+  );
+}
+ 
+/* ---------- Visualizações do Juriscore® ---------- */
+ 
+function ScoreRing({ value, color, size = 170 }) {
+  const r = 66;
+  const circ = 2 * Math.PI * r;
+  const off = circ * (1 - value / 100);
+  return (
+    <svg viewBox="0 0 160 160" style={{ width: size, height: size }}>
+      <circle cx="80" cy="80" r={r} stroke={C.borderSoft} strokeWidth="11" fill="none" />
+      <circle
+        cx="80" cy="80" r={r}
+        stroke={color} strokeWidth="11" fill="none"
+        strokeDasharray={circ} strokeDashoffset={off}
+        strokeLinecap="round" transform="rotate(-90 80 80)"
+        style={{ transition: "stroke-dashoffset 0.8s ease" }}
+      />
+      <text x="80" y="76" textAnchor="middle" fontSize="34" fontWeight="800" fill={C.text}>{value}</text>
+      <text x="80" y="98" textAnchor="middle" fontSize="10" fill={C.faint}>de 100</text>
+    </svg>
+  );
+}
+ 
+function RadarJuriscore({ scores }) {
+  const size = 320;
+  const cx = size / 2;
+  const cy = size / 2 + 6;
+  const R = 105;
+  const n = PILLARS.length;
+  const point = (i, r) => {
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  };
+  const ring = (frac) => Array.from({ length: n }, (_, i) => point(i, R * frac).join(",")).join(" ");
+  const dataPoints = PILLARS.map((d, i) => point(i, R * (scores[d.id] / MAX_PER_PILLAR)));
+  const dataPoly = dataPoints.map((p) => p.join(",")).join(" ");
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-sm mx-auto">
+      {[1, 0.75, 0.5, 0.25].map((f) => (
+        <polygon key={f} points={ring(f)} fill="none" stroke={C.border} strokeWidth="1" />
+      ))}
+      {PILLARS.map((d, i) => {
+        const [x, y] = point(i, R);
+        return <line key={d.id} x1={cx} y1={cy} x2={x} y2={y} stroke={C.borderSoft} strokeWidth="1" />;
+      })}
+      <polygon points={dataPoly} fill="rgba(200,169,106,0.2)" stroke={C.gold} strokeWidth="2" strokeLinejoin="round" />
+      {dataPoints.map((p, i) => (
+        <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={C.gold} />
+      ))}
+      {PILLARS.map((d, i) => {
+        const [x, y] = point(i, R + 26);
+        return (
+          <text key={d.id} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="700" fill={C.dim} style={{ textTransform: "uppercase", letterSpacing: 0.6 }}>
+            {d.name}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+ 
+/* ---------- Login ---------- */
+ 
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const inputStyle = { background: C.bg2, border: `1px solid ${C.border}`, color: C.text };
+  const social = (label, icon) => (
+    <button
+      onClick={() => onLogin({ nome: label.includes("Google") ? "Conta Google" : "Conta Apple", email: "conta@exemplo.com" })}
+      className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+      style={{ border: `1px solid ${C.border}`, color: C.text, background: C.panel }}
+    >
+      <span>{icon}</span> {label}
+    </button>
+  );
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: C.bg }}>
+      <div className="w-full" style={{ maxWidth: 400 }}>
+        <div className="flex flex-col items-center mb-8">
+          <LogoLH size={88} />
+          <p className="mt-4 font-medium text-lg" style={{ fontFamily: "Georgia, serif", color: "#EDE3C8", letterSpacing: "0.24em" }}>
+            LEGAL HEALTH
+          </p>
+          <p className="uppercase mt-1" style={{ color: C.gold, letterSpacing: "0.26em", fontSize: 9 }}>
+            Inteligência Jurídica para Medicina
+          </p>
+        </div>
+        <Panel>
+          <div className="space-y-3">
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-mail" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={inputStyle} />
+            <input value={senha} onChange={(e) => setSenha(e.target.value)} type="password" placeholder="Senha" className="w-full px-4 py-3 rounded-xl text-sm outline-none" style={inputStyle} />
+            <GoldBtn className="w-full" onClick={() => onLogin({ nome: email ? email.split("@")[0] : "Doutor(a)", email: email || "demo@legalhealth.com.br" })}>
+              Entrar
+            </GoldBtn>
+          </div>
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px" style={{ background: C.border }} />
+            <span className="text-xs" style={{ color: C.faint }}>ou continue com</span>
+            <div className="flex-1 h-px" style={{ background: C.border }} />
+          </div>
+          <div className="space-y-2">
+            {social("Continuar com Google", "🇬")}
+            {social("Continuar com Apple", "")}
+            <button
+              onClick={() => onLogin({ nome: "Acesso Biométrico", email: "demo@legalhealth.com.br" })}
+              className="w-full py-3 rounded-xl text-sm font-semibold"
+              style={{ border: `1px dashed ${C.border}`, color: C.dim, background: "transparent" }}
+            >
+              🔒 Entrar com biometria
+            </button>
+          </div>
+        </Panel>
+        <p className="text-center text-xs mt-4" style={{ color: C.faint }}>
+          Autenticação demonstrativa — na versão de produção, login real via Supabase (e-mail, Google, Apple e biometria nativa).
+        </p>
+        <p className="text-center text-xs mt-6 tracking-widest uppercase" style={{ color: C.faint, letterSpacing: "0.2em" }}>
+          Antecipe · Decida · Proteja
+        </p>
+      </div>
+    </div>
+  );
+}
+ 
+/* ---------- Dashboard ---------- */
+ 
+function Dashboard({ user, result, plan, doneMap, go }) {
+  const mat = result ? maturity(result.total) : null;
+  const alerts = [];
+  if (!result) {
+    alerts.push({ tone: "blue", title: "Diagnóstico pendente", desc: "Descubra seu Juriscore® para ativar alertas e recomendações personalizadas.", cta: "Fazer diagnóstico", go: ["juriscore"] });
+  } else {
+    PILLARS.forEach((d) => {
+      const pct = Math.round((result.byDim[d.id] / MAX_PER_PILLAR) * 100);
+      if (pct < 50) alerts.push({ tone: pct < 34 ? "red" : "amber", title: `Pilar ${d.name} em ${pct}%`, desc: d.desc, cta: "Ver plano", go: ["plano"] });
+    });
+    if (!plan) alerts.push({ tone: "gold", title: "Plano de Ação não gerado", desc: "Transforme o diagnóstico em pendências práticas priorizadas pela IA.", cta: "Gerar plano", go: ["plano"] });
+  }
+  const totalAcoes = plan ? plan.prioridades.reduce((a, p) => a + (p.acoes?.length || 0), 0) : 0;
+  const feitas = plan ? Object.values(doneMap).filter(Boolean).length : 0;
+  const toneColor = { red: C.red, amber: C.amber, gold: C.gold, blue: "#7FA7F5" };
+ 
+  const quick = [
+    { icon: "📜", t: "Nova peça", d: "Defesa, petição, notificação", go: ["intel", "redator"] },
+    { icon: "🔎", t: "Analisar intimação", d: "Riscos, prazos e estratégia", go: ["intel", "risco"] },
+    { icon: "📷", t: "Escanear documento", d: "Upload, câmera e OCR", go: ["intel", "docs"] },
+    { icon: "🤖", t: "Perguntar à IA", d: "Dúvidas do dia a dia clínico", go: ["intel", "chat"] },
+  ];
+ 
+  return (
+    <div>
+      <div className="mb-6">
+        <p className="text-sm" style={{ color: C.faint }}>Bem-vindo(a) de volta,</p>
+        <h2 className="text-2xl font-bold" style={{ color: C.text }}>{user.nome}</h2>
+      </div>
+ 
+      <div className="grid lg:grid-cols-3 gap-4">
+        <Panel highlight className="flex flex-col items-center justify-center text-center lg:col-span-1 py-6">
+          <p className="text-xs tracking-widest uppercase mb-3" style={{ color: C.gold, letterSpacing: "0.16em" }}>
+            Juriscore® — Legal Health Index
+          </p>
+          {result ? (
+            <>
+              <ScoreRing value={result.total} color={mat.color} />
+              <div className="px-4 py-1 rounded-full text-sm font-semibold mt-3" style={{ color: mat.color, border: `1px solid ${mat.color}` }}>
+                {mat.label}
+              </div>
+              <button onClick={() => go("juriscore")} className="text-xs mt-3 underline" style={{ color: C.dim }}>
+                Ver diagnóstico completo
+              </button>
+            </>
+          ) : (
+            <>
+              <ScoreRing value={0} color={C.border} />
+              <p className="text-sm mt-2 mb-3 max-w-52" style={{ color: C.dim }}>Seu raio-x jurídico ainda não foi calculado.</p>
+              <GoldBtn onClick={() => go("juriscore")}>Descobrir meu Juriscore®</GoldBtn>
+            </>
+          )}
+        </Panel>
+ 
+        <div className="lg:col-span-2 space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <Panel className="text-center py-4">
+              <div className="text-2xl font-bold" style={{ color: result ? mat.color : C.faint }}>{result ? result.total : "—"}</div>
+              <div className="text-xs mt-1" style={{ color: C.faint }}>Score Jurídico</div>
+            </Panel>
+            <Panel className="text-center py-4">
+              <div className="text-2xl font-bold" style={{ color: alerts.some(a => a.tone === "red") ? C.red : C.text }}>{result ? alerts.filter(a => a.tone === "red" || a.tone === "amber").length : "—"}</div>
+              <div className="text-xs mt-1" style={{ color: C.faint }}>Pilares em alerta</div>
+            </Panel>
+            <Panel className="text-center py-4">
+              <div className="text-2xl font-bold" style={{ color: C.text }}>{plan ? `${feitas}/${totalAcoes}` : "—"}</div>
+              <div className="text-xs mt-1" style={{ color: C.faint }}>Pendências</div>
+            </Panel>
+          </div>
+ 
+          <Panel>
+            <h3 className="font-bold mb-3 flex items-center gap-2" style={{ color: C.text }}>🔔 Alertas</h3>
+            {alerts.length === 0 && (
+              <p className="text-sm" style={{ color: C.green }}>✓ Nenhum alerta crítico. Mantenha o monitoramento ativo.</p>
+            )}
+            <div className="space-y-2">
+              {alerts.slice(0, 4).map((a, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: C.bg2, border: `1px solid ${C.borderSoft}` }}>
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: toneColor[a.tone] }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: C.text }}>{a.title}</p>
+                    <p className="text-xs truncate" style={{ color: C.faint }}>{a.desc}</p>
+                  </div>
+                  <button onClick={() => go(...a.go)} className="text-xs font-semibold flex-shrink-0" style={{ color: toneColor[a.tone] }}>
+                    {a.cta} →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
+      </div>
+ 
+      <h3 className="font-bold mt-6 mb-3" style={{ color: C.text }}>Ações rápidas</h3>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {quick.map((q) => (
+          <Panel key={q.t} onClick={() => go(...q.go)} className="transition-transform hover:-translate-y-1">
+            <div className="text-2xl mb-2">{q.icon}</div>
+            <p className="font-bold text-sm" style={{ color: C.text }}>{q.t}</p>
+            <p className="text-xs mt-0.5" style={{ color: C.faint }}>{q.d}</p>
+          </Panel>
+        ))}
+      </div>
+ 
+      <Panel className="mt-6">
+        <p className="text-sm italic leading-relaxed" style={{ color: C.dim }}>
+          "Não somos um escritório. <span style={{ color: C.gold }}>Somos a estrutura que antecipa, previne e protege.</span>"
+        </p>
+        <p className="text-xs mt-2" style={{ color: C.faint }}>Para que você possa focar no que importa: seus pacientes.</p>
+      </Panel>
+    </div>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Chat ---------- */
+ 
+function ChatAI() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const endRef = useRef(null);
+ 
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+ 
+  async function send(text) {
+    const content = (text ?? input).trim();
+    if (!content || loading) return;
+    setError(null);
+    setInput("");
+    const next = [...messages, { role: "user", content }];
+    setMessages(next);
+    setLoading(true);
+    try {
+      const reply = await callClaude(next, SYSTEM_AI, 1600);
+      setMessages([...next, { role: "assistant", content: reply }]);
+    } catch (e) {
+      setError("Não foi possível obter a resposta. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <div className="flex flex-col" style={{ height: "60vh", minHeight: 400 }}>
+      <div className="flex-1 overflow-y-auto rounded-2xl p-4 space-y-4" style={{ background: C.bg2, border: `1px solid ${C.border}` }}>
+        {messages.length === 0 && (
+          <div className="pt-6">
+            <p className="text-sm mb-4 text-center" style={{ color: C.faint }}>Comece com uma das dúvidas mais frequentes:</p>
+            <div className="grid sm:grid-cols-2 gap-2 max-w-2xl mx-auto">
+              {[
+                "Posso negar o prontuário ao paciente?",
+                "Como divulgar antes e depois sem infringir o CFM?",
+                "Paciente pediu exclusão dos dados pela LGPD. O que faço?",
+                "Redija uma notificação extrajudicial de cobrança de honorários médicos.",
+              ].map((s) => (
+                <button key={s} onClick={() => send(s)} className="text-left text-sm px-4 py-3 rounded-xl" style={{ background: C.panel, border: `1px solid ${C.border}`, color: C.dim }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              className="max-w-full sm:max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
+              style={
+                m.role === "user"
+                  ? { background: C.blue, color: "#F5F8FF", borderBottomRightRadius: 6 }
+                  : { background: C.panel, border: `1px solid ${C.border}`, color: C.dim, borderBottomLeftRadius: 6 }
+              }
+            >
+              {m.role === "assistant" ? renderMd(m.content) : m.content}
+            </div>
+          </div>
+        ))}
+        {loading && <Spinner label="Legal Health AI analisando legislação e riscos..." />}
+        {error && <p className="text-sm" style={{ color: C.red }}>{error}</p>}
+        <div ref={endRef} />
+      </div>
+      <div className="flex gap-2 mt-3">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && send()}
+          placeholder="Pergunte ou peça uma minuta completa..."
+          className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
+          style={{ background: C.panel, border: `1px solid ${C.border}`, color: C.text }}
+        />
+        <GoldBtn onClick={() => send()} disabled={loading || !input.trim()}>Enviar</GoldBtn>
+      </div>
+    </div>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Redator de Peças ---------- */
+ 
+const PIECE_TYPES = [
+  "Defesa em Sindicância (CRM)",
+  "Defesa em Processo Ético-Profissional (CRM)",
+  "Contestação — Ação de Responsabilidade Médica",
+  "Petição Inicial — Cobrança de Honorários Médicos",
+  "Petição Inicial Cível (outra matéria da saúde)",
+  "Impugnação de Glosa perante Operadora",
+  "Notificação Extrajudicial",
+  "Recurso ao Conselho Federal de Medicina",
+];
+ 
+function Redator({ fatosIniciais }) {
+  const [pieceType, setPieceType] = useState(PIECE_TYPES[0]);
+  const [f, setF] = useState({ cliente: "", parte: "", orgao: "", fatos: fatosIniciais || "", objetivo: "", provas: "" });
+  const [peca, setPeca] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const inputStyle = { background: C.bg2, border: `1px solid ${C.border}`, color: C.text };
+ 
+  useEffect(() => {
+    if (fatosIniciais) setF((prev) => ({ ...prev, fatos: fatosIniciais }));
+  }, [fatosIniciais]);
+ 
+  async function gerar() {
+    setLoading(true);
+    setError(null);
+    setPeca(null);
+    try {
+      const prompt = `Tipo de peça: ${pieceType}.
+Cliente (parte representada): ${f.cliente || "[QUALIFICAÇÃO DO CLIENTE]"}
+Parte contrária / interessado: ${f.parte || "[PARTE CONTRÁRIA]"}
+Órgão de destino (juízo / câmara do CRM / comarca): ${f.orgao || "[ÓRGÃO/COMARCA]"}
+Fatos do caso: ${f.fatos || "[DESCREVER OS FATOS]"}
+Objetivo e pedidos: ${f.objetivo || "[OBJETIVO DA PEÇA]"}
+Provas e argumentos disponíveis: ${f.provas || "não informado"}
+ 
+Redija a peça completa.`;
+      setPeca(await callClaude([{ role: "user", content: prompt }], SYSTEM_PECAS, 4000));
+    } catch (e) {
+      setError("Falha ao redigir a peça. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  const field = (key, label, placeholder) => (
+    <div className="flex-1" style={{ minWidth: 160 }}>
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>{label}</label>
+      <input value={f[key]} onChange={(e) => setF({ ...f, [key]: e.target.value })} placeholder={placeholder} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={inputStyle} />
+    </div>
+  );
+  const area = (key, label, placeholder, rows = 3) => (
+    <div className="w-full">
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>{label}</label>
+      <textarea value={f[key]} onChange={(e) => setF({ ...f, [key]: e.target.value })} placeholder={placeholder} rows={rows} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-y" style={inputStyle} />
+    </div>
+  );
+ 
+  return (
+    <Panel>
+      <label className="text-xs font-semibold block mb-2" style={{ color: C.faint }}>Tipo de peça</label>
+      <div className="flex flex-wrap gap-2 mb-5">
+        {PIECE_TYPES.map((p) => (
+          <button
+            key={p}
+            onClick={() => setPieceType(p)}
+            className="px-3 py-2 rounded-xl text-sm font-medium"
+            style={{
+              background: pieceType === p ? C.goldSoft : C.bg2,
+              border: `1px solid ${pieceType === p ? C.gold : C.border}`,
+              color: pieceType === p ? C.gold : C.faint,
+            }}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-3 mb-3">
+        {field("cliente", "Cliente (parte representada)", "Dr(a). [nome], CRM-PB 00000...")}
+        {field("parte", "Parte contrária / interessado", "Paciente, operadora, CRM...")}
+        {field("orgao", "Órgão de destino", "Vara Cível de João Pessoa/PB, Câmara do CRM-PB...")}
+      </div>
+      <div className="space-y-3">
+        {area("fatos", "Fatos do caso", "Descreva o ocorrido em ordem cronológica...", 4)}
+        {area("objetivo", "Objetivo e pedidos", "O que a peça deve alcançar (arquivamento, absolvição, condenação ao pagamento...)", 2)}
+        {area("provas", "Provas e argumentos disponíveis (opcional)", "Prontuário completo, TCLE assinado, testemunhas...", 2)}
+      </div>
+      <GoldBtn className="mt-5" onClick={gerar} disabled={loading}>Redigir peça completa com IA</GoldBtn>
+      {loading && <Spinner label="Redigindo a peça no padrão forense — pode levar alguns segundos..." />}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {peca && <OutputBox text={peca} label="Peça redigida" />}
+    </Panel>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Análise de Risco ---------- */
+ 
+function AnaliseRisco({ onUsarNoRedator }) {
+  const [texto, setTexto] = useState("");
+  const [out, setOut] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+ 
+  async function analisar() {
+    setLoading(true);
+    setError(null);
+    setOut(null);
+    try {
+      setOut(await callClaude([{ role: "user", content: texto }], SYSTEM_ANALISE, 1800));
+    } catch (e) {
+      setError("Falha na análise. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <Panel>
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>
+        Cole o texto da intimação, citação, notificação ou descreva o caso
+      </label>
+      <textarea
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        placeholder="Ex.: recebi intimação do CRM-PB para prestar esclarecimentos em sindicância aberta por paciente que alega..."
+        rows={6}
+        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-y"
+        style={{ background: C.bg2, border: `1px solid ${C.border}`, color: C.text }}
+      />
+      <div className="flex flex-wrap gap-3 mt-4">
+        <GoldBtn onClick={analisar} disabled={loading || !texto.trim()}>Analisar risco com IA</GoldBtn>
+        {out && (
+          <GoldBtn outline onClick={() => onUsarNoRedator(texto)}>Usar este caso no redator de peças →</GoldBtn>
+        )}
+      </div>
+      {loading && <Spinner label="Analisando natureza, prazos, riscos e estratégia..." />}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {out && <OutputBox text={out} label="Análise de risco" />}
+    </Panel>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Jurisprudência ---------- */
+ 
+function Jurisprudencia() {
+  const [q, setQ] = useState("");
+  const [out, setOut] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+ 
+  async function pesquisar() {
+    setLoading(true);
+    setError(null);
+    setOut(null);
+    try {
+      setOut(await callClaudeSearch(`Tema da pesquisa de jurisprudência (Direito Médico/Saúde, Brasil): ${q}`, SYSTEM_JURIS, 2200));
+    } catch (e) {
+      setError("Falha na pesquisa. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <Panel>
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>Tema ou tese a pesquisar</label>
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && q.trim() && !loading && pesquisar()}
+        placeholder="Ex.: responsabilidade do cirurgião plástico em obrigação de resultado — STJ"
+        className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+        style={{ background: C.bg2, border: `1px solid ${C.border}`, color: C.text }}
+      />
+      <GoldBtn className="mt-4" onClick={pesquisar} disabled={loading || !q.trim()}>Pesquisar jurisprudência na web</GoldBtn>
+      {loading && <Spinner label="Buscando julgados reais em STJ, TJs e fontes oficiais..." />}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {out && <OutputBox text={out} label="Jurisprudência" />}
+    </Panel>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Jurimetria ---------- */
+ 
+function Jurimetria() {
+  const [tema, setTema] = useState("");
+  const [uf, setUf] = useState("");
+  const [out, setOut] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const inputStyle = { background: C.bg2, border: `1px solid ${C.border}`, color: C.text };
+ 
+  async function rodar() {
+    setLoading(true);
+    setError(null);
+    setOut(null);
+    try {
+      setOut(
+        await callClaudeSearch(
+          `Jurimetria da judicialização em saúde no Brasil. Tema/especialidade: ${tema}. ${uf ? `Recorte estadual: ${uf}.` : "Recorte nacional."} Busque dados reais e recentes.`,
+          SYSTEM_JURIMETRIA,
+          2500
+        )
+      );
+    } catch (e) {
+      setError("Falha na análise jurimétrica. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <Panel>
+      <div className="flex flex-wrap gap-3">
+        <div className="flex-1" style={{ minWidth: 200 }}>
+          <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>Tema ou especialidade</label>
+          <input value={tema} onChange={(e) => setTema(e.target.value)} placeholder="Ex.: erro médico em cirurgia plástica estética" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={inputStyle} />
+        </div>
+        <div style={{ minWidth: 120 }}>
+          <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>UF (opcional)</label>
+          <input value={uf} onChange={(e) => setUf(e.target.value)} placeholder="PB" className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={inputStyle} />
+        </div>
+      </div>
+      <GoldBtn className="mt-4" onClick={rodar} disabled={loading || !tema.trim()}>Gerar análise jurimétrica</GoldBtn>
+      {loading && <Spinner label="Coletando dados de judicialização em fontes públicas (CNJ, tribunais, estudos)..." />}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {out && <OutputBox text={out} label="Jurimetria" />}
+    </Panel>
+  );
+}
+ 
+/* ---------- Inteligência Jurídica: Documentos (upload + scanner + OCR) ---------- */
+ 
+function Documentos() {
+  const [out, setOut] = useState(null);
+  const [fileName, setFileName] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const fileRef = useRef(null);
+  const camRef = useRef(null);
+ 
+  async function handleFile(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Arquivo acima de 15 MB. Envie um documento menor.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setOut(null);
+    setFileName(file.name);
+    try {
+      const b64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(",")[1]);
+        r.onerror = () => rej(new Error("Falha na leitura"));
+        r.readAsDataURL(file);
+      });
+      const isPdf = file.type === "application/pdf";
+      const content = [
+        isPdf
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }
+          : { type: "image", source: { type: "base64", media_type: file.type || "image/jpeg", data: b64 } },
+        { type: "text", text: "Leia e analise este documento conforme suas instruções." },
+      ];
+      setOut(await callClaude([{ role: "user", content }], SYSTEM_DOCS, 2500));
+    } catch (err) {
+      setError("Falha ao processar o documento. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <Panel>
+      <p className="text-sm mb-4" style={{ color: C.dim }}>
+        Envie um PDF ou fotografe um documento (intimação, contrato, termo, notificação). A IA faz a leitura (OCR), extrai os trechos essenciais e aponta riscos e prazos.
+      </p>
+      <input ref={fileRef} type="file" accept="application/pdf,image/*" onChange={handleFile} className="hidden" />
+      <input ref={camRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" />
+      <div className="flex flex-wrap gap-3">
+        <GoldBtn onClick={() => fileRef.current?.click()} disabled={loading}>📄 Enviar PDF ou imagem</GoldBtn>
+        <GoldBtn outline onClick={() => camRef.current?.click()} disabled={loading}>📷 Escanear com a câmera</GoldBtn>
+      </div>
+      {fileName && !loading && !error && (
+        <p className="text-xs mt-3" style={{ color: C.faint }}>Documento: {fileName}</p>
+      )}
+      {loading && <Spinner label={`Lendo ${fileName || "documento"} — OCR e análise jurídica em andamento...`} />}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {out && <OutputBox text={out} label="Leitura do documento" />}
+    </Panel>
+  );
+}
+ 
+/* ---------- Hub: Inteligência Jurídica ---------- */
+ 
+function Inteligencia({ tab, setTab }) {
+  const [fatosParaRedator, setFatosParaRedator] = useState("");
+  const TABS = [
+    { id: "chat", label: "🤖 Assistente" },
+    { id: "redator", label: "📜 Redigir peça" },
+    { id: "risco", label: "🔎 Análise de risco" },
+    { id: "juris", label: "⚖️ Jurisprudência" },
+    { id: "jurimetria", label: "📈 Jurimetria" },
+    { id: "docs", label: "📎 Documentos" },
+  ];
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Central de IA"
+        title="Inteligência Jurídica"
+        sub="Assistente resolutivo, redator de peças, análise de risco, jurisprudência real, jurimetria e leitura de documentos com OCR."
+      />
+      <div className="flex flex-wrap gap-2 mb-5">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className="px-3.5 py-2 rounded-xl text-sm font-semibold"
+            style={{
+              background: tab === t.id ? C.goldSoft : C.panel,
+              border: `1px solid ${tab === t.id ? C.gold : C.border}`,
+              color: tab === t.id ? C.gold : C.faint,
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "chat" && <ChatAI />}
+      {tab === "redator" && <Redator fatosIniciais={fatosParaRedator} />}
+      {tab === "risco" && (
+        <AnaliseRisco
+          onUsarNoRedator={(texto) => {
+            setFatosParaRedator(texto);
+            setTab("redator");
+          }}
+        />
+      )}
+      {tab === "juris" && <Jurisprudencia />}
+      {tab === "jurimetria" && <Jurimetria />}
+      {tab === "docs" && <Documentos />}
+    </div>
+  );
+}
+ 
+/* ---------- Juriscore® ---------- */
+ 
+function Juriscore({ answers, setAnswers, onFinish, result }) {
+  const [step, setStep] = useState(result ? PILLARS.length : 0);
+ 
+  useEffect(() => {
+    if (!result) setStep(0);
+  }, [result]);
+ 
+  const allAnswered = (idx) => PILLARS[idx].questions.every((_, qi) => answers[`${PILLARS[idx].id}-${qi}`] !== undefined);
+ 
+  if (result) {
+    const mat = maturity(result.total);
+    return (
+      <div>
+        <SectionTitle eyebrow="Core Engine" title="Juriscore®" sub="Dados transformados em clareza. Clareza que gera decisão. Decisão que gera proteção." />
+        <div className="grid lg:grid-cols-2 gap-4">
+          <Panel highlight className="flex flex-col items-center justify-center text-center py-8">
+            <LogoLH size={40} />
+            <p className="text-xs tracking-widest uppercase mt-4 mb-2" style={{ color: C.gold, letterSpacing: "0.16em" }}>
+              Juriscore® — Legal Health Index
+            </p>
+            <ScoreRing value={result.total} color={mat.color} size={180} />
+            <div className="px-4 py-1 rounded-full text-sm font-semibold mt-2 mb-3" style={{ color: mat.color, border: `1px solid ${mat.color}` }}>
+              {mat.label}
+            </div>
+            <p className="text-sm max-w-xs" style={{ color: C.dim }}>{mat.desc}</p>
+          </Panel>
+          <Panel>
+            <RadarJuriscore scores={result.byDim} />
+          </Panel>
+        </div>
+        <Panel className="mt-4">
+          <h3 className="font-bold mb-4" style={{ color: C.text }}>Exposição por pilar</h3>
+          <div className="space-y-3">
+            {PILLARS.map((d) => {
+              const pct = Math.round((result.byDim[d.id] / MAX_PER_PILLAR) * 100);
+              const color = pct >= 67 ? C.green : pct >= 34 ? C.amber : C.red;
+              return (
+                <div key={d.id}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span style={{ color: C.dim }}>
+                      <span className="font-semibold" style={{ color: C.text }}>{d.name}</span>
+                      <span className="hidden sm:inline"> — {d.desc}</span>
+                    </span>
+                    <span className="font-semibold" style={{ color }}>{pct}%</span>
+                  </div>
+                  <div className="h-2 rounded-full" style={{ background: C.borderSoft }}>
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+        <div className="flex flex-col sm:flex-row gap-3 mt-5">
+          <button onClick={() => onFinish(null)} className="px-5 py-3 rounded-xl text-sm font-semibold" style={{ border: `1px solid ${C.border}`, color: C.dim, background: C.panel }}>
+            Refazer diagnóstico
+          </button>
+          <GoldBtn onClick={() => onFinish("plano")}>Gerar Plano de Ação a partir deste Juriscore® →</GoldBtn>
+        </div>
+      </div>
+    );
+  }
+ 
+  const pillar = PILLARS[Math.min(step, PILLARS.length - 1)];
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Core Engine"
+        title="Juriscore®"
+        sub="O raio-x completo da sua segurança jurídica em 5 pilares essenciais. Não espere o processo chegar para descobrir o risco que poderia ter evitado."
+      />
+      <div className="flex items-center gap-1 mb-5">
+        {PILLARS.map((d, i) => (
+          <div key={d.id} className="h-1.5 flex-1 rounded-full transition-all" style={{ background: i < step ? C.green : i === step ? C.gold : C.borderSoft }} />
+        ))}
+      </div>
+      <Panel>
+        <Badge>Pilar {step + 1} de {PILLARS.length}</Badge>
+        <h3 className="text-xl font-bold mt-3 mb-1" style={{ color: C.text }}>{pillar.name}</h3>
+        <p className="text-sm mb-5" style={{ color: C.faint }}>{pillar.desc}</p>
+        <div className="space-y-6">
+          {pillar.questions.map((q, qi) => {
+            const key = `${pillar.id}-${qi}`;
+            return (
+              <div key={key}>
+                <p className="text-sm mb-3 leading-relaxed" style={{ color: C.dim }}>{q}</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {ANSWER_OPTIONS.map((opt) => {
+                    const active = answers[key] === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setAnswers({ ...answers, [key]: opt.value })}
+                        className="flex-1 px-3 py-2.5 rounded-xl text-sm font-medium"
+                        style={{
+                          background: active ? C.goldSoft : C.bg2,
+                          border: `1px solid ${active ? C.gold : C.border}`,
+                          color: active ? C.gold : C.faint,
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
+      <div className="flex justify-between mt-5">
+        <button onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} className="px-5 py-3 rounded-xl text-sm font-semibold disabled:opacity-30" style={{ border: `1px solid ${C.border}`, color: C.dim, background: C.panel }}>
+          ← Anterior
+        </button>
+        {step < PILLARS.length - 1 ? (
+          <button onClick={() => setStep(step + 1)} disabled={!allAnswered(step)} className="px-5 py-3 rounded-xl text-sm font-semibold disabled:opacity-30" style={{ background: C.green, color: "#06120C" }}>
+            Próximo pilar →
+          </button>
+        ) : (
+          <GoldBtn onClick={() => onFinish("calc")} disabled={!allAnswered(step)}>Calcular meu Juriscore®</GoldBtn>
+        )}
+      </div>
+    </div>
+  );
+}
+ 
+/* ---------- Plano de Ação (com pendências checáveis) ---------- */
+ 
+function PlanoDeAcao({ result, plan, setPlan, doneMap, setDoneMap, goJuriscore }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+ 
+  async function generate() {
+    setLoading(true);
+    setError(null);
+    try {
+      const dimData = PILLARS.map((d) => `Pilar ${d.name} (${d.desc}): ${Math.round((result.byDim[d.id] / MAX_PER_PILLAR) * 100)}% de conformidade`).join("\n");
+      const prompt = `Diagnóstico Juriscore® (Legal Health Index) de um profissional/clínica de medicina no Brasil — score total ${result.total}/100, medido em 5 pilares:\n\n${dimData}\n\nGere um Plano de Ação preventivo priorizando os pilares com menor conformidade. Responda APENAS com JSON válido, sem markdown, sem texto antes ou depois, no formato:\n{"resumo": "diagnóstico executivo em 2 frases", "prioridades": [{"titulo": "...", "pilar": "Documental|Regulatório|Operacional|Histórico|Contextual", "risco": "alto|medio|baixo", "prazo": "ex: 15 dias", "acoes": ["ação prática 1", "ação prática 2", "ação prática 3"]}]}\nInclua de 4 a 6 prioridades, das mais urgentes às de manutenção. Ações devem ser concretas e executáveis por um gestor de clínica.`;
+      const raw = await callClaude(
+        [{ role: "user", content: prompt }],
+        "Você é o motor de Plano de Ação da plataforma Legal Health, especialista em compliance médico no Brasil. Responda somente com JSON válido.",
+        1800
+      );
+      setPlan(extractJson(raw));
+      setDoneMap({});
+    } catch (e) {
+      setError("Falha ao gerar o plano. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  if (!result) {
+    return (
+      <div>
+        <SectionTitle eyebrow="Operações" title="Plano de Ação" sub="Roadmap de correção criado autonomamente pela IA com base nas defasagens diagnosticadas pelo Juriscore®." />
+        <Panel className="text-center py-10">
+          <div className="text-3xl mb-3">🎯</div>
+          <p className="text-sm mb-5 max-w-md mx-auto" style={{ color: C.dim }}>
+            O Plano de Ação é gerado a partir do seu diagnóstico. Descubra primeiro o seu Juriscore® para desbloquear este módulo.
+          </p>
+          <GoldBtn onClick={goJuriscore}>Descobrir meu Juriscore®</GoldBtn>
+        </Panel>
+      </div>
+    );
+  }
+ 
+  const riskStyle = {
+    alto: { color: C.red, label: "Risco alto" },
+    medio: { color: C.amber, label: "Risco médio" },
+    baixo: { color: C.green, label: "Risco baixo" },
+  };
+ 
+  const totalAcoes = plan ? plan.prioridades.reduce((a, p) => a + (p.acoes?.length || 0), 0) : 0;
+  const feitas = Object.values(doneMap).filter(Boolean).length;
+  const pct = totalAcoes ? Math.round((feitas / totalAcoes) * 100) : 0;
+ 
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Operações"
+        title="Plano de Ação"
+        sub={`Gerado a partir do seu Juriscore® de ${result.total}/100 pontos. Marque as pendências concluídas para acompanhar a evolução.`}
+      />
+      {!plan && !loading && (
+        <Panel className="text-center py-10">
+          <p className="text-sm mb-5" style={{ color: C.dim }}>Diagnóstico pronto. A IA irá priorizar as correções pelos pilares mais vulneráveis.</p>
+          <GoldBtn onClick={generate}>Gerar Plano de Ação com IA</GoldBtn>
+        </Panel>
+      )}
+      {loading && <Panel><Spinner label="Analisando defasagens e montando o roadmap preventivo..." /></Panel>}
+      {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+      {plan && (
+        <div className="space-y-4">
+          <Panel highlight>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <p className="text-xs tracking-widest uppercase" style={{ color: C.gold, letterSpacing: "0.16em" }}>Diagnóstico executivo</p>
+              <span className="text-xs font-semibold" style={{ color: C.gold }}>{feitas}/{totalAcoes} pendências concluídas ({pct}%)</span>
+            </div>
+            <div className="h-1.5 rounded-full mb-3" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, background: C.gold }} />
+            </div>
+            <p className="text-sm leading-relaxed" style={{ color: C.text }}>{plan.resumo}</p>
+          </Panel>
+          {plan.prioridades?.map((p, i) => {
+            const rs = riskStyle[p.risco] || riskStyle.medio;
+            return (
+              <Panel key={i}>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: C.goldSoft, color: C.gold, border: `1px solid rgba(200,169,106,0.35)` }}>
+                    {i + 1}
+                  </span>
+                  <h3 className="font-bold flex-1" style={{ color: C.text }}>{p.titulo}</h3>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ color: rs.color, border: `1px solid ${rs.color}` }}>
+                    {rs.label}
+                  </span>
+                  <span className="text-xs px-2.5 py-1 rounded-full" style={{ color: C.dim, border: `1px solid ${C.border}` }}>
+                    ⏱ {p.prazo}
+                  </span>
+                </div>
+                <p className="text-xs mb-3" style={{ color: C.faint }}>Pilar: {p.pilar}</p>
+                <ul className="space-y-2">
+                  {p.acoes?.map((a, ai) => {
+                    const k = `${i}-${ai}`;
+                    const done = !!doneMap[k];
+                    return (
+                      <li key={k}>
+                        <button
+                          onClick={() => setDoneMap({ ...doneMap, [k]: !done })}
+                          className="flex items-start gap-3 text-left w-full rounded-xl px-3 py-2"
+                          style={{ background: done ? C.greenSoft : C.bg2, border: `1px solid ${done ? "rgba(47,191,123,0.35)" : C.borderSoft}` }}
+                        >
+                          <span
+                            className="w-5 h-5 rounded-md flex items-center justify-center text-xs flex-shrink-0 mt-0.5"
+                            style={{ border: `1.5px solid ${done ? C.green : C.faint}`, color: C.green, background: done ? "rgba(47,191,123,0.2)" : "transparent" }}
+                          >
+                            {done ? "✓" : ""}
+                          </span>
+                          <span className="text-sm leading-relaxed" style={{ color: done ? C.faint : C.dim, textDecoration: done ? "line-through" : "none" }}>
+                            {a}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Panel>
+            );
+          })}
+          <button onClick={generate} className="px-5 py-3 rounded-xl text-sm font-semibold" style={{ border: `1px solid ${C.border}`, color: C.dim, background: C.panel }}>
+            Regenerar plano
+          </button>
+          <p className="text-xs" style={{ color: C.faint }}>⚠️ Plano preventivo gerado por IA — não substitui parecer jurídico individualizado.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+ 
+/* ---------- Biblioteca (Minutas · Protocolos · Checklists) ---------- */
+ 
+const DOC_CATALOG = {
+  Minutas: [
+    { id: "tcle", label: "Termo de Consentimento (TCLE)", needsProc: true },
+    { id: "contrato", label: "Contrato de Prestação de Serviços Médicos" },
+    { id: "lgpd", label: "Aviso de Privacidade LGPD para Pacientes" },
+    { id: "tele", label: "Termo de Consentimento para Teleconsulta" },
+    { id: "imagem", label: "Autorização de Uso de Imagem (padrão CFM)" },
+  ],
+  Protocolos: [
+    { id: "p-intercorrencia", label: "Protocolo de Intercorrências e Eventos Adversos" },
+    { id: "p-lgpd", label: "Protocolo Interno de Proteção de Dados (LGPD)" },
+    { id: "p-reclamacao", label: "Fluxo de Tratamento de Reclamações de Pacientes" },
+    { id: "p-comunicacao", label: "Protocolo de Comunicação com Pacientes (WhatsApp e canais)" },
+  ],
+  Checklists: [
+    { id: "c-consultorio", label: "Checklist de Conformidade do Consultório" },
+    { id: "c-publicidade", label: "Checklist de Publicidade Médica (CFM)" },
+    { id: "c-lgpd", label: "Checklist de Adequação à LGPD" },
+    { id: "c-cirurgia", label: "Checklist Pré-Procedimento de Risco", needsProc: true },
+  ],
+};
+ 
+function Biblioteca() {
+  const [cat, setCat] = useState("Minutas");
+  const [docType, setDocType] = useState(DOC_CATALOG.Minutas[0]);
+  const [form, setForm] = useState({ nome: "", crm: "", especialidade: "", cidade: "", procedimento: "" });
+  const [doc, setDoc] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const inputStyle = { background: C.bg2, border: `1px solid ${C.border}`, color: C.text };
+ 
+  const field = (key, label, placeholder) => (
+    <div className="flex-1" style={{ minWidth: 160 }}>
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>{label}</label>
+      <input value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} placeholder={placeholder} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={inputStyle} />
+    </div>
+  );
+ 
+  async function generate() {
+    setLoading(true);
+    setError(null);
+    setDoc(null);
+    try {
+      const kind = cat === "Minutas" ? "minuta jurídica" : cat === "Protocolos" ? "protocolo operacional interno" : "checklist prático em itens verificáveis";
+      const prompt = `Gere um(a) ${kind} profissional: "${docType.label}", para uso no Brasil, adequado(a) às normas do CFM e à LGPD.\nDados do profissional: Nome: ${form.nome || "[NOME DO PROFISSIONAL]"}; CRM: ${form.crm || "[CRM/UF]"}; Especialidade: ${form.especialidade || "[ESPECIALIDADE]"}; Cidade: ${form.cidade || "[CIDADE/UF]"}.${docType.needsProc ? ` Procedimento: ${form.procedimento || "[PROCEDIMENTO]"}.` : ""}\n${cat === "Checklists" ? "Formato: itens numerados com caixas [ ] e critério objetivo de verificação em cada item." : "Use campos entre colchetes [ASSIM] para dados a preencher. Estruture com cláusulas/seções numeradas."}\nEntregue apenas o texto do documento, sem comentários.`;
+      setDoc(
+        await callClaude(
+          [{ role: "user", content: prompt }],
+          "Você é o gerador de documentos da plataforma Legal Health, especialista em documentos jurídicos e operacionais da área da saúde no Brasil. Produza conteúdo completo, tecnicamente correto e em português formal.",
+          3000
+        )
+      );
+    } catch (e) {
+      setError("Falha ao gerar o documento. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+ 
+  return (
+    <div>
+      <SectionTitle
+        eyebrow="Documentos"
+        title="Biblioteca Inteligente"
+        sub="Minutas, protocolos e checklists gerados sob medida para a sua especialidade. Exportáveis para PDF na versão de produção."
+      />
+      <div className="flex gap-2 mb-4">
+        {Object.keys(DOC_CATALOG).map((c) => (
+          <button
+            key={c}
+            onClick={() => {
+              setCat(c);
+              setDocType(DOC_CATALOG[c][0]);
+              setDoc(null);
+            }}
+            className="px-4 py-2 rounded-xl text-sm font-semibold"
+            style={{
+              background: cat === c ? C.goldSoft : C.panel,
+              border: `1px solid ${cat === c ? C.gold : C.border}`,
+              color: cat === c ? C.gold : C.faint,
+            }}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      <Panel>
+        <div className="flex flex-wrap gap-2 mb-5">
+          {DOC_CATALOG[cat].map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setDocType(d)}
+              className="px-3 py-2 rounded-xl text-sm font-medium"
+              style={{
+                background: docType.id === d.id ? C.goldSoft : C.bg2,
+                border: `1px solid ${docType.id === d.id ? C.gold : C.border}`,
+                color: docType.id === d.id ? C.gold : C.faint,
+              }}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {field("nome", "Nome do profissional", "Dr(a). ...")}
+          {field("crm", "CRM / UF", "CRM-PB 00000")}
+          {field("especialidade", "Especialidade", "Dermatologia")}
+          {field("cidade", "Cidade / UF", "João Pessoa/PB")}
+          {docType.needsProc && field("procedimento", "Procedimento", "Ex.: preenchimento facial")}
+        </div>
+        <GoldBtn className="mt-5" onClick={generate} disabled={loading}>Gerar com IA</GoldBtn>
+        {loading && <Spinner label="Redigindo conforme normas do CFM e LGPD..." />}
+        {error && <p className="text-sm mt-3" style={{ color: C.red }}>{error}</p>}
+        {doc && <OutputBox text={doc} label={cat.slice(0, -1) + " gerada"} />}
+      </Panel>
+    </div>
+  );
+}
+ 
+/* ---------- Perfil ---------- */
+ 
+const PLANOS = [
+  { id: "essential", nome: "Essential", preco: "R$ 197/mês", desc: "Médicos individuais e consultórios de menor porte." },
+  { id: "professional", nome: "Professional", preco: "R$ 497/mês", desc: "Gama completa para clínicas integradas e equipes.", destaque: true },
+  { id: "enterprise", nome: "Enterprise", preco: "Sob consulta", desc: "Grandes redes hospitalares e operadoras de saúde." },
+];
+ 
+function Perfil({ user, profile, setProfile, onLogout }) {
+  const inputStyle = { background: C.bg2, border: `1px solid ${C.border}`, color: C.text };
+  const set = (k, v) => setProfile({ ...profile, [k]: v });
+  const field = (key, label, placeholder) => (
+    <div className="flex-1" style={{ minWidth: 160 }}>
+      <label className="text-xs font-semibold block mb-1.5" style={{ color: C.faint }}>{label}</label>
+      <input value={profile[key] || ""} onChange={(e) => set(key, e.target.value)} placeholder={placeholder} className="w-full px-3 py-2.5 rounded-xl text-sm outline-none" style={inputStyle} />
+    </div>
+  );
+  const Toggle = ({ k, label }) => (
+    <button onClick={() => set(k, !profile[k])} className="flex items-center justify-between w-full py-2.5">
+      <span className="text-sm" style={{ color: C.dim }}>{label}</span>
+      <span className="w-10 h-6 rounded-full relative transition-colors" style={{ background: profile[k] ? C.gold : C.border }}>
+        <span className="w-4 h-4 rounded-full absolute top-1 transition-all" style={{ background: "#0A0A0A", left: profile[k] ? 22 : 4 }} />
+      </span>
+    </button>
+  );
+ 
+  return (
+    <div>
+      <SectionTitle eyebrow="Conta" title="Perfil" sub="Seus dados profissionais, assinatura e configurações do aplicativo." />
+      <Panel className="mb-4">
+        <div className="flex items-center gap-4 mb-5">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold" style={{ background: C.goldSoft, color: C.gold, border: `1px solid rgba(200,169,106,0.35)` }}>
+            {(profile.nome || user.nome || "L")[0].toUpperCase()}
+          </div>
+          <div>
+            <p className="font-bold" style={{ color: C.text }}>{profile.nome || user.nome}</p>
+            <p className="text-xs" style={{ color: C.faint }}>{user.email}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {field("nome", "Nome completo", "Dr(a). ...")}
+          {field("crm", "CRM / UF", "CRM-PB 00000")}
+          {field("especialidade", "Especialidade", "Dermatologia")}
+          {field("cidade", "Cidade / UF", "João Pessoa/PB")}
+        </div>
+      </Panel>
+ 
+      <h3 className="font-bold mb-3" style={{ color: C.text }}>Assinatura</h3>
+      <div className="grid sm:grid-cols-3 gap-3 mb-4">
+        {PLANOS.map((p) => {
+          const active = profile.plano === p.id;
+          return (
+            <Panel key={p.id} highlight={p.destaque} onClick={() => set("plano", p.id)} className="relative">
+              {active && (
+                <span className="absolute top-3 right-3 text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: C.greenSoft, color: C.green, border: `1px solid rgba(47,191,123,0.35)` }}>
+                  Ativo
+                </span>
+              )}
+              <p className="text-xs uppercase tracking-widest mb-1" style={{ color: p.destaque ? C.gold : C.faint, letterSpacing: "0.14em" }}>{p.nome}</p>
+              <p className="text-xl font-bold" style={{ color: C.text }}>{p.preco}</p>
+              <p className="text-xs mt-1" style={{ color: C.faint }}>{p.desc}</p>
+            </Panel>
+          );
+        })}
+      </div>
+ 
+      <Panel className="mb-4">
+        <h3 className="font-bold mb-2" style={{ color: C.text }}>Configurações</h3>
+        <Toggle k="push" label="Notificações push (alertas regulatórios e prazos)" />
+        <Toggle k="biometria" label="Desbloqueio por biometria" />
+        <Toggle k="offline" label="Modo offline com sincronização automática" />
+        <p className="text-xs mt-2" style={{ color: C.faint }}>
+          Preferências registradas nesta sessão — push, biometria e offline operam de forma nativa na versão de produção (Expo + Supabase).
+        </p>
+      </Panel>
+ 
+      <button onClick={onLogout} className="px-5 py-3 rounded-xl text-sm font-semibold" style={{ border: `1px solid ${C.red}`, color: C.red, background: "transparent" }}>
+        Sair da conta
+      </button>
+    </div>
+  );
+}
+ 
+/* ---------- App ---------- */
+ 
+const NAV = [
+  { id: "inicio", label: "Início", icon: "🏠" },
+  { id: "intel", label: "IA", icon: "🧠" },
+  { id: "juriscore", label: "Juriscore®", icon: "📊" },
+  { id: "plano", label: "Plano", icon: "🎯" },
+  { id: "biblioteca", label: "Biblioteca", icon: "📁" },
+  { id: "perfil", label: "Perfil", icon: "👤" },
+];
+ 
+export default function LegalHealthApp() {
+  const [user, setUser] = useState(null);
+  const [view, setView] = useState("inicio");
+  const [intelTab, setIntelTab] = useState("chat");
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const [doneMap, setDoneMap] = useState({});
+  const [profile, setProfile] = useState({ plano: "professional", push: true, biometria: false, offline: false });
+ 
+  if (!user) return <LoginScreen onLogin={setUser} />;
+ 
+  function go(v, sub) {
+    setView(v);
+    if (v === "intel" && sub) setIntelTab(sub);
+  }
+ 
+  function finishJuriscore(action) {
+    if (action === "calc") {
+      const byDim = {};
+      let total = 0;
+      PILLARS.forEach((d) => {
+        const s = d.questions.reduce((acc, _, qi) => acc + (answers[`${d.id}-${qi}`] || 0), 0);
+        byDim[d.id] = s;
+        total += s;
+      });
+      setResult({ byDim, total: Math.round((total / (PILLARS.length * MAX_PER_PILLAR)) * 100) });
+      setPlan(null);
+      setDoneMap({});
+    } else if (action === "plano") {
+      setView("plano");
+    } else {
+      setResult(null);
+      setPlan(null);
+      setDoneMap({});
+      setAnswers({});
+    }
+  }
+ 
+  return (
+    <div className="min-h-screen font-sans" style={{ background: C.bg, color: C.text }}>
+      <header className="sticky top-0 z-20 px-4 sm:px-8 py-3 flex items-center justify-between backdrop-blur" style={{ background: "rgba(10,10,10,0.92)", borderBottom: `1px solid ${C.border}` }}>
+        <button onClick={() => setView("inicio")} className="flex items-center gap-3">
+          <Logo size={36} />
+        </button>
+        <div className="flex items-center gap-2">
+          <nav className="hidden md:flex gap-1">
+            {NAV.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => setView(n.id)}
+                className="px-3.5 py-2 rounded-xl text-sm font-medium"
+                style={{ color: view === n.id ? C.gold : C.dim, background: view === n.id ? C.goldSoft : "transparent" }}
+              >
+                {n.label}
+              </button>
+            ))}
+          </nav>
+          <button
+            onClick={() => setView("perfil")}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+            style={{ background: C.goldSoft, color: C.gold, border: `1px solid rgba(200,169,106,0.35)` }}
+          >
+            {(profile.nome || user.nome || "L")[0].toUpperCase()}
+          </button>
+        </div>
+      </header>
+ 
+      <main className="max-w-5xl mx-auto px-4 sm:px-8 py-8 pb-24 md:pb-10">
+        {view === "inicio" && <Dashboard user={user} result={result} plan={plan} doneMap={doneMap} go={go} />}
+        {view === "intel" && <Inteligencia tab={intelTab} setTab={setIntelTab} />}
+        {view === "juriscore" && <Juriscore answers={answers} setAnswers={setAnswers} onFinish={finishJuriscore} result={result} />}
+        {view === "plano" && <PlanoDeAcao result={result} plan={plan} setPlan={setPlan} doneMap={doneMap} setDoneMap={setDoneMap} goJuriscore={() => setView("juriscore")} />}
+        {view === "biblioteca" && <Biblioteca />}
+        {view === "perfil" && <Perfil user={user} profile={profile} setProfile={setProfile} onLogout={() => setUser(null)} />}
+      </main>
+ 
+      <footer className="hidden md:block px-8 py-5 text-xs" style={{ borderTop: `1px solid ${C.border}`, color: C.faint }}>
+        <div className="max-w-5xl mx-auto flex justify-between items-center">
+          <Logo size={26} />
+          <span className="italic">Descubra seu Juriscore®.</span>
+          <span style={{ letterSpacing: "0.14em" }}>ANTECIPE · DECIDA · PROTEJA</span>
+        </div>
+      </footer>
+ 
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-20 flex justify-around py-2 backdrop-blur" style={{ background: "rgba(10,10,10,0.95)", borderTop: `1px solid ${C.border}` }}>
+        {NAV.map((n) => (
+          <button key={n.id} onClick={() => setView(n.id)} className="flex flex-col items-center gap-0.5 px-1 py-1 rounded-lg" style={{ color: view === n.id ? C.gold : C.faint }}>
+            <span className="text-sm">{n.icon}</span>
+            <span className="font-medium" style={{ fontSize: 10 }}>{n.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}

@@ -1,0 +1,8 @@
+| Ferramenta/Modelo    | Uso na Legal Health                                              | Minha recomendação |
+| -------------------- | ---------------------------------------------------------------- | ------------------ |
+| **Claude Opus**      | Arquitetura, metodologia, decisões complexas, auditoria profunda | ⭐⭐⭐⭐⭐              |
+| **Claude Sonnet**    | Implementação, refatoração, correções e desenvolvimento diário   | ⭐⭐⭐⭐⭐              |
+| **Claude Artifacts** | Prototipagem visual, telas e componentes interativos             | ⭐⭐⭐⭐⭐              |
+| **Claude Code**      | Trabalhar diretamente no código e no repositório                 | ⭐⭐⭐⭐⭐              |
+| **Fable**            | Exploração/prototipagem de produto e experiências visuais        | ⭐⭐⭐⭐               |
+| **Claude Haiku**     | Tarefas simples e rápidas                                        | ⭐⭐                 |
