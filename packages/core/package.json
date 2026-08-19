@@ -1,0 +1,11 @@
+{
+  "name": "@lh/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Domínio puro da Legal Health — zero dependências, zero I/O (Playbook §2, INV-1). Motor do LHI chega na Sprint 1 (B-04).",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

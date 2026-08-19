@@ -1,0 +1,16 @@
+# dependências
+node_modules/
+
+# builds e artefatos
+dist/
+web-build/
+.expo/
+*.tsbuildinfo
+coverage/
+
+# segredos — jamais versionados (Playbook §10; critério A10)
+.env
+.env.*
+
+# sistema
+.DS_Store
