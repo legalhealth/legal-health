@@ -1,8 +1,10 @@
 # ADR-0001 — Perímetro Oficial do Código
 
 > Transcrição fiel do registro aceito (`ADR-0001-Perimetro-Oficial-do-Codigo.pdf`, neste diretório).
-> O PDF é o registro original; esta transcrição acrescenta apenas o preenchimento do campo D6.1,
-> homologado pelo fundador no Termo de Decisão T-00 (2026-08-05).
+> O PDF é o registro original; esta transcrição acrescenta apenas o preenchimento de campos que a
+> decisão deixou em aberto, cada um com atribuição explícita e sem alterar dispositivo algum:
+> o endereço do repositório em **D6.1** (Termo de Decisão T-00, decisão (a), 2026-08-05) e a âncora
+> da tag em **D7** (decisão D-04 do fundador, 2026-08-23; ver NCN-02/2026).
 
 | Campo | Valor |
 | --- | --- |
@@ -83,6 +85,12 @@ recorrente a "testar rapidamente no artefato" — o mecanismo pelo qual fontes p
   apenas documentação e o próprio artefato — primeira linha da tabela. O artefato é a base.
 - **D7.** O artefato auditado é preservado sob a tag `artifact-baseline` no repositório oficial, como
   referência histórica de paridade (critério A2; checklist C16).
+  **A tag ancora o commit `a3a07c83f5716878300864751ee63a4a8147a189`**, no qual o artefato passa a
+  existir em `docs/artifact-baseline/codigo-mvp-lh.jsx.txt` (blob
+  `9bc2af8c4dd20f6f11b8273219b89eb80fcda8f0`, idêntico ao do estado original `29f890b`).
+  Fundamento: leitura literal da Ordem Oficial §8.4 — artefato "mantido em `docs/`" e marcado "no
+  primeiro commit" do marco da Sprint 0.
+  *Âncora definida por homologação do fundador — decisão D-04, 2026-08-23. Ver NCN-02/2026 §4.*
 - **D8.** A partir do primeiro commit, nenhuma alteração destinada ao produto ocorre fora do repositório
   oficial, sob nenhuma circunstância.
 
