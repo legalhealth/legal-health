@@ -1,0 +1,68 @@
+# Integração Contínua — item S0-C da Ordem Oficial de Execução da Sprint 0.
+#
+# Ordem Oficial §2.1 (S0-C): "Build, lint, testes e verificação de invariantes a cada commit".
+# Critério de aceite A1: "CI verde no tronco — build, lint e testes passam em execução limpa".
+# Checklist C02: "A integração contínua está verde no tronco?".
+#
+# Escopo desta tarefa: apenas o pipeline. As regras que ele executa são as já
+# definidas pelo monorepo em S0-B (T-03); nenhum script foi criado ou alterado aqui.
+#
+# Verificação de invariantes: o veículo é o passo de lint. A regra de fronteira de
+# dependência (INV-1 e INV-3 do Playbook §1.1) é adicionada ao eslint.config.mjs na
+# tarefa S0-I, conforme ADR-0002 §2.2. Assim que S0-I entrar, este pipeline passa a
+# reprovar automaticamente qualquer violação, sem alteração deste arquivo.
+#
+# Nota sobre `npm run format` (prettier --check): deliberadamente ausente. A Ordem §2.1
+# exige build, lint, testes e invariantes — não formatação. Executá-lo hoje reprovaria o
+# pipeline em 6 arquivos, cinco deles do corpus normativo (docs/adr/*, docs/sprints/*),
+# cuja alteração é vedada, e o README.md, que pertence a S0-K. Registrado para decisão.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: build · lint · test · typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # O repositório não declara `engines` nem `.nvmrc`. A versão abaixo é a do
+      # ambiente em que S0-B e S0-C foram validados localmente (Node 22.x).
+      # Fixar `engines` é decisão de toolchain, pendente da ratificação da ADR-0002.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # Instalação determinística a partir do package-lock.json (lockfileVersion 3).
+      - name: Install
+        run: npm ci
+
+      # Lint — veículo da verificação de invariantes (INV-1/INV-3 chegam em S0-I).
+      - name: Lint
+        run: npm run lint
+
+      # Typecheck de todos os workspaces: packages/{core,contracts,ui} + apps/web.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build (web)
+        run: npm run build:web
