@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "test": "vitest run",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc -p apps/api/ai-gateway/tsconfig.json",
     "build:web": "npm run build --workspace web"
   },
   "devDependencies": {
