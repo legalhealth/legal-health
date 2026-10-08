@@ -66,6 +66,37 @@ const WEB_SEARCH_TOOL = {
  */
 export const PROVIDER_TIMEOUT_MS = 120_000;
 
+/**
+ * Motivos pelos quais uma tentativa ao provedor termina SEM devolver uso. Em todos eles o
+ * custo da tentativa é DESCONHECIDO — nunca zero: o provedor pode ter processado a requisição
+ * e cobrado tokens gerados antes da falha ou do corte. Só a reconciliação com o console do
+ * provedor resolve o valor.
+ */
+export type CostUnknownReason =
+  | 'timeout'
+  | 'network_error'
+  | 'provider_status'
+  | 'unreadable_response';
+
+/** Falha de uma tentativa que já saiu para a rede: carrega o motivo do custo desconhecido. */
+export class ProviderCallError extends LhError {
+  readonly reason: CostUnknownReason;
+  /** Código HTTP do provedor, quando houve resposta; `null` em timeout e falha de rede. */
+  readonly providerStatus: number | null;
+
+  constructor(
+    reason: CostUnknownReason,
+    logCause: string,
+    providerStatus: number | null = null,
+    details: Record<string, string | number | boolean> = {},
+  ) {
+    super('provider_error', logCause, details);
+    this.name = 'ProviderCallError';
+    this.reason = reason;
+    this.providerStatus = providerStatus;
+  }
+}
+
 export interface ProviderMessage {
   readonly role: 'user' | 'assistant';
   readonly content: string;
@@ -192,10 +223,12 @@ export async function callProvider(
     timer = setTimeout(() => {
       controller.abort();
       reject(
-        new LhError('provider_error', `provedor sem resposta em ${timeoutMs} ms (tempo limite)`, {
-          providerTimeout: true,
-          timeoutMs,
-        }),
+        new ProviderCallError(
+          'timeout',
+          `provedor sem resposta em ${timeoutMs} ms (tempo limite)`,
+          null,
+          { providerTimeout: true, timeoutMs },
+        ),
       );
     }, timeoutMs);
   });
@@ -239,8 +272,8 @@ async function executeProviderCall(
       signal,
     });
   } catch (cause) {
-    throw new LhError(
-      'provider_error',
+    throw new ProviderCallError(
+      'network_error',
       `falha de rede ao chamar o provedor: ${cause instanceof Error ? cause.message : String(cause)}`,
     );
   }
@@ -248,20 +281,26 @@ async function executeProviderCall(
   if (!response.ok) {
     // O corpo de erro do provedor não é propagado: pode ecoar o conteúdo enviado, e o
     // princípio 5 do Anexo manda mensagem genérica na UI.
-    throw new LhError('provider_error', `provedor respondeu ${response.status}`, {
-      providerStatus: response.status,
-    });
+    throw new ProviderCallError(
+      'provider_status',
+      `provedor respondeu ${response.status}`,
+      response.status,
+      { providerStatus: response.status },
+    );
   }
 
   let parsed: AnthropicResponse;
   try {
     parsed = (await response.json()) as AnthropicResponse;
   } catch {
-    throw new LhError('provider_error', 'resposta do provedor não é JSON válido');
+    throw new ProviderCallError('unreadable_response', 'resposta do provedor não é JSON válido');
   }
 
   if (!Array.isArray(parsed.content)) {
-    throw new LhError('provider_error', 'resposta do provedor sem bloco de conteúdo');
+    throw new ProviderCallError(
+      'unreadable_response',
+      'resposta do provedor sem bloco de conteúdo',
+    );
   }
 
   const content = (parsed.content as AnthropicBlock[])

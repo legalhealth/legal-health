@@ -25,10 +25,11 @@ import {
   assessCompleteness,
   callProvider,
   normalizeStopReason,
+  ProviderCallError,
   type ProviderResult,
 } from './provider/anthropic.ts';
 import { buildEnvelope, type AiResponseEnvelope } from './envelope.ts';
-import { attemptEntry, costEntry, type Logger } from './observability.ts';
+import { attemptEntry, costEntry, unknownCostEntry, type Logger } from './observability.ts';
 import {
   createIdempotencyStore,
   idempotencyKey,
@@ -125,12 +126,34 @@ export async function handleRequest(
         userId: principal.userId,
       }),
     );
-    const result: ProviderResult = await callProvider(
-      prepared.request,
-      deps.env,
-      deps.fetch,
-      deps.providerTimeoutMs,
-    );
+    let result: ProviderResult;
+    try {
+      result = await callProvider(
+        prepared.request,
+        deps.env,
+        deps.fetch,
+        deps.providerTimeoutMs,
+      );
+    } catch (failure) {
+      // Tentativa que já saiu para a rede e não devolveu uso: custo DESCONHECIDO, nunca zero.
+      if (failure instanceof ProviderCallError) {
+        const failedAt = deps.now();
+        deps.log(
+          unknownCostEntry({
+            requestId,
+            route: routeId,
+            promptId: prepared.prompt.id,
+            promptVersion: prepared.prompt.version,
+            reason: failure.reason,
+            providerStatus: failure.providerStatus,
+            latencyMs: failedAt.getTime() - startedAt,
+            now: failedAt,
+            userId: principal.userId,
+          }),
+        );
+      }
+      throw failure;
+    }
     const finishedAt = deps.now();
 
     // Decisão C.2 (R-05): custo registrado por chamada, no momento da chamada.

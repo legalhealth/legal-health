@@ -78,7 +78,31 @@ export interface AttemptLogEntry {
   readonly userId: string;
 }
 
-export type LogEntry = CostLogEntry | ErrorLogEntry | AttemptLogEntry;
+/**
+ * Tentativa ao provedor que terminou SEM uso devolvido: timeout, falha de rede, resposta de
+ * erro do provedor ou corpo ilegível. O custo é DESCONHECIDO até a reconciliação com o
+ * console do provedor — esta entrada NUNCA deve ser lida como custo zero. Para cada evento
+ * `ai.provider.attempt` existe exatamente um `ai.call.cost` (custo observado) OU um
+ * `ai.call.cost_unknown` (custo desconhecido), verificado por teste.
+ */
+export interface UnknownCostLogEntry {
+  readonly kind: 'ai.call.cost_unknown';
+  readonly requestId: string;
+  readonly route: RouteId;
+  readonly promptId: string;
+  readonly promptVersion: string;
+  readonly reason: 'timeout' | 'network_error' | 'provider_status' | 'unreadable_response';
+  /** Código HTTP do provedor quando houve resposta; `null` em timeout e falha de rede. */
+  readonly providerStatus: number | null;
+  /** Sempre `pending`: só a conferência com o console do provedor define o valor. */
+  readonly reconciliation: 'pending';
+  readonly latencyMs: number;
+  readonly timestamp: string;
+  /** Identificador opaco do usuário. Não é dado de paciente. */
+  readonly userId: string;
+}
+
+export type LogEntry = CostLogEntry | ErrorLogEntry | AttemptLogEntry | UnknownCostLogEntry;
 
 export type Logger = (entry: LogEntry) => void;
 
@@ -125,6 +149,32 @@ export function attemptEntry(input: {
     route: input.route,
     promptId: input.promptId,
     promptVersion: input.promptVersion,
+    timestamp: input.now.toISOString(),
+    userId: input.userId,
+  };
+}
+
+export function unknownCostEntry(input: {
+  readonly requestId: string;
+  readonly route: RouteId;
+  readonly promptId: string;
+  readonly promptVersion: string;
+  readonly reason: UnknownCostLogEntry['reason'];
+  readonly providerStatus: number | null;
+  readonly latencyMs: number;
+  readonly now: Date;
+  readonly userId: string;
+}): UnknownCostLogEntry {
+  return {
+    kind: 'ai.call.cost_unknown',
+    requestId: input.requestId,
+    route: input.route,
+    promptId: input.promptId,
+    promptVersion: input.promptVersion,
+    reason: input.reason,
+    providerStatus: input.providerStatus,
+    reconciliation: 'pending',
+    latencyMs: input.latencyMs,
     timestamp: input.now.toISOString(),
     userId: input.userId,
   };
