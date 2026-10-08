@@ -167,3 +167,55 @@ export async function handleRequest(
     return json(toErrorBody(error, requestId), error.status, requestId);
   }
 }
+
+/**
+ * Dependências do invólucro de inicialização (ver `createRequestHandler`).
+ */
+export interface BootstrapDeps {
+  /** Resolve a configuração e monta as dependências; pode lançar se faltar variável. */
+  readonly resolveDeps: () => GatewayDeps;
+  readonly newRequestId: () => string;
+  readonly now: () => Date;
+  readonly log: Logger;
+}
+
+/**
+ * Invólucro do ponto de entrada: falha de configuração vira resposta estruturada.
+ *
+ * Antes, `loadEnv` era chamado fora do `try` de `handleRequest`; uma variável ausente
+ * (`ANTHROPIC_API_KEY`, `SUPABASE_URL` ou `SUPABASE_ANON_KEY`, ADR-0006 D6.11) escapava como
+ * exceção não tratada e o cliente recebia um 500 genérico da plataforma, sem `requestId` e
+ * sem causa observável. Agora:
+ *
+ * - o cliente recebe o envelope do Anexo Técnico I, princípio 5 — `code: internal_error`,
+ *   mensagem genérica, `details` vazio e `requestId` — SEM nomear a variável ausente;
+ * - o log recebe `ai.call.error` com a causa técnica (o NOME da variável, nunca valor);
+ * - a falha NÃO é memorizada: `resolveDeps` é reavaliado a cada requisição, de modo que a
+ *   função se recupera sozinha assim que a configuração for corrigida.
+ *
+ * Nenhuma chamada ao Supabase Auth nem ao provedor ocorre neste caminho.
+ */
+export function createRequestHandler(
+  boot: BootstrapDeps,
+): (request: Request) => Promise<Response> {
+  return async (request) => {
+    let deps: GatewayDeps;
+    try {
+      deps = boot.resolveDeps();
+    } catch (thrown) {
+      const requestId = boot.newRequestId();
+      const error = asLhError(thrown);
+      boot.log({
+        kind: 'ai.call.error',
+        requestId,
+        route: null,
+        promptId: null,
+        code: error.code,
+        cause: error.logCause,
+        timestamp: boot.now().toISOString(),
+      });
+      return json(toErrorBody(error, requestId), error.status, requestId);
+    }
+    return handleRequest(request, deps);
+  };
+}

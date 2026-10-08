@@ -11,7 +11,7 @@
  */
 
 import { loadEnv } from './env.ts';
-import { createDeps, handleRequest, type GatewayDeps } from './handler.ts';
+import { createDeps, createRequestHandler, type GatewayDeps } from './handler.ts';
 import { consoleLogger } from './observability.ts';
 
 let deps: GatewayDeps | null = null;
@@ -29,4 +29,13 @@ function resolveDeps(): GatewayDeps {
   return deps;
 }
 
-Deno.serve((request: Request) => handleRequest(request, resolveDeps()));
+// A resolução da configuração acontece DENTRO do invólucro: variável ausente produz o
+// envelope de erro estruturado (e um log), não uma exceção não tratada da plataforma.
+Deno.serve(
+  createRequestHandler({
+    resolveDeps,
+    newRequestId: () => globalThis.crypto.randomUUID(),
+    now: () => new Date(),
+    log: consoleLogger,
+  }),
+);
