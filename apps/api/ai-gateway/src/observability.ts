@@ -52,7 +52,28 @@ export interface ErrorLogEntry {
   readonly timestamp: string;
 }
 
-export type LogEntry = CostLogEntry | ErrorLogEntry;
+/**
+ * Tentativa de acesso ao provedor, emitida IMEDIATAMENTE ANTES da chamada de rede.
+ *
+ * É o único evento que observa a tentativa em si, independentemente do desfecho: o log de
+ * custo só existe quando o provedor devolve uso, e o de erro não distingue "negada antes do
+ * provedor" de "falhou no provedor". Com este evento, o número de tentativas é contável nos
+ * logs da função e pode ser conferido contra o contador de requisições do console do
+ * provedor. Invariante verificado por teste: nº de eventos `ai.provider.attempt` == nº de
+ * chamadas de rede ao provedor. Não carrega credencial nem conteúdo (INV-5).
+ */
+export interface AttemptLogEntry {
+  readonly kind: 'ai.provider.attempt';
+  readonly requestId: string;
+  readonly route: RouteId;
+  readonly promptId: string;
+  readonly promptVersion: string;
+  readonly timestamp: string;
+  /** Identificador opaco do usuário. Não é dado de paciente. */
+  readonly userId: string;
+}
+
+export type LogEntry = CostLogEntry | ErrorLogEntry | AttemptLogEntry;
 
 export type Logger = (entry: LogEntry) => void;
 
@@ -78,6 +99,25 @@ export function costEntry(input: {
     outputTokens: input.usage.outputTokens,
     webSearchRequests: input.usage.webSearchRequests,
     latencyMs: input.latencyMs,
+    timestamp: input.now.toISOString(),
+    userId: input.userId,
+  };
+}
+
+export function attemptEntry(input: {
+  readonly requestId: string;
+  readonly route: RouteId;
+  readonly promptId: string;
+  readonly promptVersion: string;
+  readonly now: Date;
+  readonly userId: string;
+}): AttemptLogEntry {
+  return {
+    kind: 'ai.provider.attempt',
+    requestId: input.requestId,
+    route: input.route,
+    promptId: input.promptId,
+    promptVersion: input.promptVersion,
     timestamp: input.now.toISOString(),
     userId: input.userId,
   };

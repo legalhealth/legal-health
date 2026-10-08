@@ -23,7 +23,7 @@ import { authorize, resolveRoute, ROUTE_POLICY, type RouteId } from './rbac.ts';
 import { ROUTE_BUILDERS } from './routes.ts';
 import { callProvider, type ProviderResult } from './provider/anthropic.ts';
 import { buildEnvelope, type AiResponseEnvelope } from './envelope.ts';
-import { costEntry, type Logger } from './observability.ts';
+import { attemptEntry, costEntry, type Logger } from './observability.ts';
 import {
   createIdempotencyStore,
   idempotencyKey,
@@ -107,6 +107,17 @@ export async function handleRequest(
     }
 
     const startedAt = deps.now().getTime();
+    // Registra a TENTATIVA antes de sair para a rede, qualquer que seja o desfecho.
+    deps.log(
+      attemptEntry({
+        requestId,
+        route: routeId,
+        promptId: prepared.prompt.id,
+        promptVersion: prepared.prompt.version,
+        now: deps.now(),
+        userId: principal.userId,
+      }),
+    );
     const result: ProviderResult = await callProvider(
       prepared.request,
       deps.env,
