@@ -25,8 +25,30 @@ const ENDPOINT = 'https://api.anthropic.com/v1/messages';
 /** Versão de API do provedor. Constante do fornecedor, não decisão de produto. */
 const API_VERSION = '2023-06-01';
 
+/**
+ * Teto de buscas web por chamada a `/ai/research`.
+ *
+ * Sem `max_uses` o modelo decide sozinho quantas buscas fazer, e cada uma custa US$ 10 por
+ * mil mais os tokens dos resultados, que entram como entrada. O provedor documenta (consulta
+ * de 2026-10-08) que "consultas factuais simples costumam usar 1 a 3 buscas" e que excedido o
+ * limite o resultado da busca vem como erro `max_uses_exceeded` DENTRO de uma resposta 200,
+ * sem cobrança da busca com erro. O gateway então devolve o que o modelo conseguiu produzir.
+ *
+ * O valor 3 é escolha do executor, registrada para auditoria: reversível por alteração de
+ * uma constante, e conservadora para a fase de aceite. Cobre jurisprudência e jurimetria com
+ * até 3 buscas cada. LIMITE DE ESCOPO: este teto limita o número de buscas, NÃO o gasto total;
+ * os tokens de entrada trazidos pelos resultados e os de saída continuam sujeitos apenas a
+ * `max_tokens`. O controle financeiro é o limite de gasto do workspace no console do
+ * provedor, que não é bloqueio rígido comprovado.
+ */
+export const WEB_SEARCH_MAX_USES = 3;
+
 /** ADR-0004 D4.3 — busca web integrada, mesma ferramenta empregada no artefato (l.158). */
-const WEB_SEARCH_TOOL = { type: 'web_search_20250305', name: 'web_search' } as const;
+const WEB_SEARCH_TOOL = {
+  type: 'web_search_20250305',
+  name: 'web_search',
+  max_uses: WEB_SEARCH_MAX_USES,
+} as const;
 
 export interface ProviderMessage {
   readonly role: 'user' | 'assistant';
