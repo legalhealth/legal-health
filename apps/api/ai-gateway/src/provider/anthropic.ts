@@ -54,7 +54,11 @@ interface AnthropicBlock {
 interface AnthropicResponse {
   readonly content?: unknown;
   readonly model?: unknown;
-  readonly usage?: { readonly input_tokens?: unknown; readonly output_tokens?: unknown };
+  readonly usage?: {
+    readonly input_tokens?: unknown;
+    readonly output_tokens?: unknown;
+    readonly server_tool_use?: { readonly web_search_requests?: unknown };
+  };
 }
 
 function count(value: unknown): number {
@@ -126,6 +130,7 @@ export async function callProvider(
     usage: {
       inputTokens: count(parsed.usage?.input_tokens),
       outputTokens: count(parsed.usage?.output_tokens),
+      webSearchRequests: count(parsed.usage?.server_tool_use?.web_search_requests),
     },
   };
 }

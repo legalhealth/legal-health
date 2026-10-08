@@ -22,6 +22,12 @@ export const GENERATED_BY = 'anthropic';
 export interface Usage {
   readonly inputTokens: number;
   readonly outputTokens: number;
+  /**
+   * Buscas web executadas pelo provedor nesta chamada (`usage.server_tool_use`). Cada busca
+   * é cobrada à parte dos tokens (US$ 10 por mil buscas, pricing do provedor consultado em
+   * 2026-10-08); sem este contador o custo de `/ai/research` não seria reconstituível do log.
+   */
+  readonly webSearchRequests: number;
 }
 
 export interface AiResponseEnvelope {

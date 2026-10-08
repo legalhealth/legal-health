@@ -65,6 +65,7 @@ export async function handleRequest(
 ): Promise<Response> {
   const requestId = deps.newRequestId();
   let routeId: RouteId | null = null;
+  let promptId: string | null = null;
 
   try {
     routeId = resolveRoute(new URL(request.url).pathname) ?? null;
@@ -92,6 +93,7 @@ export async function handleRequest(
     }
 
     const prepared = ROUTE_BUILDERS[routeId](body);
+    promptId = prepared.prompt.id;
 
     const idemKey = idempotencyKey(request.headers, principal.userId);
     if (idemKey !== null) {
@@ -118,6 +120,7 @@ export async function handleRequest(
         requestId,
         route: routeId,
         model: result.model,
+        promptId: prepared.prompt.id,
         promptVersion: prepared.prompt.version,
         usage: result.usage,
         latencyMs: finishedAt.getTime() - startedAt,
@@ -145,6 +148,7 @@ export async function handleRequest(
       kind: 'ai.call.error',
       requestId,
       route: routeId,
+      promptId,
       code: error.code,
       cause: error.logCause,
       timestamp: deps.now().toISOString(),
