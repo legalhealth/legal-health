@@ -18,6 +18,7 @@ const GESTOR = { id: 'u-gestor', app_metadata: { lh_role: 'gestor' } };
 const RESPOSTA_OK = {
   model: 'claude-sonnet-4-6',
   content: [{ type: 'text', text: 'resposta tardia' }],
+  stop_reason: 'end_turn',
   usage: { input_tokens: 5, output_tokens: 5 },
 };
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));

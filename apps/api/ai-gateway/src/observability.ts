@@ -34,6 +34,11 @@ export interface CostLogEntry {
   readonly outputTokens: number;
   /** Buscas web cobradas nesta chamada (0 nas rotas sem busca). */
   readonly webSearchRequests: number;
+  /**
+   * `stop_reason` normalizado (lista fechada). Custo OBSERVADO: o provedor devolveu uso,
+   * inclusive quando a resposta foi incompleta e não chegou ao cliente como sucesso.
+   */
+  readonly stopReason: string;
   readonly latencyMs: number;
   readonly timestamp: string;
   /** Identificador opaco do usuário. Não é dado de paciente. */
@@ -84,6 +89,7 @@ export function costEntry(input: {
   readonly promptId: string;
   readonly promptVersion: string;
   readonly usage: Usage;
+  readonly stopReason: string;
   readonly latencyMs: number;
   readonly now: Date;
   readonly userId: string;
@@ -98,6 +104,7 @@ export function costEntry(input: {
     inputTokens: input.usage.inputTokens,
     outputTokens: input.usage.outputTokens,
     webSearchRequests: input.usage.webSearchRequests,
+    stopReason: input.stopReason,
     latencyMs: input.latencyMs,
     timestamp: input.now.toISOString(),
     userId: input.userId,

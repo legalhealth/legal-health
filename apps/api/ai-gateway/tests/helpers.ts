@@ -42,6 +42,7 @@ export interface HarnessOptions {
 const DEFAULT_PROVIDER_BODY = {
   model: 'claude-sonnet-4-6',
   content: [{ type: 'text', text: 'conteúdo de teste' }],
+  stop_reason: 'end_turn',
   usage: { input_tokens: 11, output_tokens: 22 },
 };
 

@@ -99,6 +99,7 @@ describe('buscas web contabilizadas', () => {
       providerBody: {
         model: 'claude-sonnet-4-6',
         content: [{ type: 'text', text: 'ok' }],
+        stop_reason: 'end_turn',
         usage: { input_tokens: 10, output_tokens: 20, server_tool_use: { web_search_requests: 3 } },
       },
     });

@@ -21,7 +21,12 @@ import type { Env } from './env.ts';
 import { authenticate, type Principal } from './auth.ts';
 import { authorize, resolveRoute, ROUTE_POLICY, type RouteId } from './rbac.ts';
 import { ROUTE_BUILDERS } from './routes.ts';
-import { callProvider, type ProviderResult } from './provider/anthropic.ts';
+import {
+  assessCompleteness,
+  callProvider,
+  normalizeStopReason,
+  type ProviderResult,
+} from './provider/anthropic.ts';
 import { buildEnvelope, type AiResponseEnvelope } from './envelope.ts';
 import { attemptEntry, costEntry, type Logger } from './observability.ts';
 import {
@@ -137,11 +142,23 @@ export async function handleRequest(
         promptId: prepared.prompt.id,
         promptVersion: prepared.prompt.version,
         usage: result.usage,
+        stopReason: normalizeStopReason(result.stopReason),
         latencyMs: finishedAt.getTime() - startedAt,
         now: finishedAt,
         userId: principal.userId,
       }),
     );
+
+    // O custo já foi registrado (tokens gerados são cobrados), mas uma resposta incompleta
+    // NÃO é apresentada como sucesso, não é memorizada e não dispara nova chamada.
+    const incomplete = assessCompleteness(result);
+    if (incomplete !== null) {
+      throw new LhError(
+        'provider_incomplete',
+        `resposta incompleta do provedor: ${incomplete.logCause}`,
+        incomplete.details,
+      );
+    }
 
     const envelope = buildEnvelope({
       requestId,

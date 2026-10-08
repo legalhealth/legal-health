@@ -50,7 +50,7 @@ describe('max_uses na ferramenta de busca', () => {
 });
 
 describe('limite excedido: o provedor responde 200 com erro dentro do resultado da busca', () => {
-  it('o gateway devolve o texto produzido e contabiliza as buscas feitas', async () => {
+  it('NÃO é apresentado como sucesso: 502 provider_incomplete, mas o custo observado é registrado', async () => {
     const h = harness({
       user: PROFISSIONAL,
       providerBody: {
@@ -65,6 +65,7 @@ describe('limite excedido: o provedor responde 200 com erro dentro do resultado 
           },
           { type: 'text', text: 'Segunda parte, com o que foi possível apurar.' },
         ],
+        stop_reason: 'end_turn',
         usage: {
           input_tokens: 1000,
           output_tokens: 300,
@@ -76,9 +77,11 @@ describe('limite excedido: o provedor responde 200 com erro dentro do resultado 
       post('/ai/research', { modo: 'jurimetria', consulta: 'erro médico' }),
       h.deps,
     );
-    const corpo = (await res.json()) as Record<string, unknown>;
-    expect(res.status).toBe(200);
-    expect(corpo['content']).toBe('Primeira parte.\nSegunda parte, com o que foi possível apurar.');
+    const bruto = await res.text();
+    expect(res.status).toBe(502);
+    expect(bruto).toContain('provider_incomplete');
+    expect(bruto).toContain('max_uses_exceeded');
+    expect(bruto).not.toContain('Primeira parte');
     const custo = h.logs.find((e) => e.kind === 'ai.call.cost');
     expect(custo?.kind === 'ai.call.cost' && custo.webSearchRequests).toBe(WEB_SEARCH_MAX_USES);
   });

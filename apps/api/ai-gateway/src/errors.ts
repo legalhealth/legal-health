@@ -17,6 +17,7 @@ export type ErrorCode =
   | 'not_found'
   | 'patient_data_rejected'
   | 'provider_error'
+  | 'provider_incomplete'
   | 'internal_error';
 
 const HTTP_STATUS: Record<ErrorCode, number> = {
@@ -27,6 +28,7 @@ const HTTP_STATUS: Record<ErrorCode, number> = {
   not_found: 404,
   patient_data_rejected: 422,
   provider_error: 502,
+  provider_incomplete: 502,
   internal_error: 500,
 };
 
@@ -39,6 +41,7 @@ const CLIENT_MESSAGE: Record<ErrorCode, string> = {
   not_found: 'Rota não encontrada.',
   patient_data_rejected: 'Conteúdo rejeitado na borda.',
   provider_error: 'Falha ao processar a solicitação.',
+  provider_incomplete: 'Resposta do provedor incompleta.',
   internal_error: 'Falha ao processar a solicitação.',
 };
 

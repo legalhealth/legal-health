@@ -32,7 +32,8 @@ const API_VERSION = '2023-06-01';
  * mil mais os tokens dos resultados, que entram como entrada. O provedor documenta (consulta
  * de 2026-10-08) que "consultas factuais simples costumam usar 1 a 3 buscas" e que excedido o
  * limite o resultado da busca vem como erro `max_uses_exceeded` DENTRO de uma resposta 200,
- * sem cobrança da busca com erro. O gateway então devolve o que o modelo conseguiu produzir.
+ * sem cobrança da busca com erro. O gateway trata esse caso como resposta INCOMPLETA
+ * (`assessCompleteness`) e não a apresenta como resultado íntegro.
  *
  * O valor 3 é escolha do executor, registrada para auditoria: reversível por alteração de
  * uma constante, e conservadora para a fase de aceite. Cobre jurisprudência e jurimetria com
@@ -81,16 +82,90 @@ export interface ProviderResult {
   readonly content: string;
   readonly model: string;
   readonly usage: Usage;
+  /** `stop_reason` devolvido pelo provedor; `null` quando ausente. Não confiar sem `assessCompleteness`. */
+  readonly stopReason: string | null;
+  /** Códigos de erro de blocos `web_search_tool_result_error`, mesmo dentro de uma resposta 200. */
+  readonly searchToolErrors: readonly string[];
+}
+
+/**
+ * Valores de `stop_reason` da Messages API (consulta de 2026-10-08, "Handling stop reasons").
+ * Só `end_turn` indica que o modelo terminou a resposta. Os demais não são resultado íntegro:
+ * `max_tokens` e `model_context_window_exceeded` truncam; `pause_turn` interrompe o laço de
+ * ferramentas do servidor e exigiria reenviar a conversa; `refusal` é recusa; `tool_use` e
+ * `stop_sequence` não são esperados, pois o gateway não declara ferramentas de cliente nem
+ * sequências de parada. O gateway NÃO continua a conversa nem faz chamada adicional.
+ */
+const KNOWN_STOP_REASONS: readonly string[] = [
+  'end_turn',
+  'max_tokens',
+  'stop_sequence',
+  'tool_use',
+  'pause_turn',
+  'refusal',
+  'model_context_window_exceeded',
+];
+
+/** Códigos de erro da ferramenta de busca documentados pelo provedor. */
+const KNOWN_SEARCH_ERRORS: readonly string[] = [
+  'too_many_requests',
+  'invalid_tool_input',
+  'max_uses_exceeded',
+  'query_too_long',
+  'request_too_large',
+  'unavailable',
+];
+
+/**
+ * Reduz o `stop_reason` a um valor de lista fechada: o que sai em log ou resposta nunca é
+ * texto livre do provedor. Ausente vira `missing`; valor fora da lista vira `unknown`.
+ */
+export function normalizeStopReason(raw: string | null): string {
+  if (raw === null) return 'missing';
+  return KNOWN_STOP_REASONS.includes(raw) ? raw : 'unknown';
+}
+
+export interface IncompleteResponse {
+  /** Causa para o log técnico. */
+  readonly logCause: string;
+  /** Detalhes seguros ao cliente: só valores de lista fechada. */
+  readonly details: Readonly<Record<string, string | boolean>>;
+}
+
+/**
+ * Decide se a resposta pode ser apresentada como resultado íntegro. Devolve `null` apenas
+ * quando o modelo terminou (`end_turn`), nenhuma busca terminou em erro e há texto.
+ * Toda outra situação é INCOMPLETA e vira erro explícito no gateway.
+ */
+export function assessCompleteness(result: ProviderResult): IncompleteResponse | null {
+  const stopReason = normalizeStopReason(result.stopReason);
+  if (stopReason !== 'end_turn') {
+    return { logCause: `stop_reason=${stopReason}`, details: { stopReason } };
+  }
+  const searchError = result.searchToolErrors[0];
+  if (searchError !== undefined) {
+    const code = KNOWN_SEARCH_ERRORS.includes(searchError) ? searchError : 'unknown';
+    return {
+      logCause: `erro da ferramenta de busca: ${code}`,
+      details: { stopReason, searchToolError: code },
+    };
+  }
+  if (result.content === '') {
+    return { logCause: 'resposta sem texto', details: { stopReason, emptyContent: true } };
+  }
+  return null;
 }
 
 interface AnthropicBlock {
   readonly type?: unknown;
   readonly text?: unknown;
+  readonly content?: unknown;
 }
 
 interface AnthropicResponse {
   readonly content?: unknown;
   readonly model?: unknown;
+  readonly stop_reason?: unknown;
   readonly usage?: {
     readonly input_tokens?: unknown;
     readonly output_tokens?: unknown;
@@ -194,12 +269,17 @@ async function executeProviderCall(
     .map((block) => block.text as string)
     .join('\n');
 
-  if (content === '') {
-    throw new LhError('provider_error', 'resposta vazia do provedor');
-  }
+  // Erros da ferramenta de busca chegam DENTRO de uma resposta 200, como bloco de resultado.
+  const searchToolErrors = (parsed.content as AnthropicBlock[])
+    .filter((block) => block.type === 'web_search_tool_result')
+    .map((block) => block.content as { type?: unknown; error_code?: unknown } | undefined)
+    .filter((c) => c?.type === 'web_search_tool_result_error')
+    .map((c) => (typeof c?.error_code === 'string' ? c.error_code : 'unknown'));
 
   return {
     content,
+    stopReason: typeof parsed.stop_reason === 'string' ? parsed.stop_reason : null,
+    searchToolErrors,
     model: typeof parsed.model === 'string' ? parsed.model : MODEL,
     usage: {
       inputTokens: count(parsed.usage?.input_tokens),
