@@ -50,6 +50,21 @@ const WEB_SEARCH_TOOL = {
   max_uses: WEB_SEARCH_MAX_USES,
 } as const;
 
+/**
+ * Prazo máximo, em ms, para o provedor responder (incluindo a leitura do corpo).
+ *
+ * Deve ser MENOR que o limite da plataforma: no plano gratuito do Supabase a Edge Function
+ * vive no máximo 150 s e a plataforma devolve 504 se não houver resposta em 150 s (limites
+ * consultados em 2026-10-08). Com 120 s o gateway responde com o seu próprio envelope de erro
+ * antes que a plataforma o faça. Chamadas com busca web podem levar dezenas de segundos.
+ *
+ * NÃO HÁ RETENTATIVA: uma requisição ao gateway produz no máximo uma chamada ao provedor.
+ * ATENÇÃO — cancelar do lado do cliente não cancela a cobrança: tokens já gerados pelo
+ * provedor antes do corte podem ser cobrados, e uma resposta que chegue depois do prazo é
+ * descartada. O timeout limita a espera, não o custo.
+ */
+export const PROVIDER_TIMEOUT_MS = 120_000;
+
 export interface ProviderMessage {
   readonly role: 'user' | 'assistant';
   readonly content: string;
@@ -91,6 +106,42 @@ export async function callProvider(
   request: ProviderRequest,
   env: Env,
   fetchImpl: typeof fetch,
+  timeoutMs: number = PROVIDER_TIMEOUT_MS,
+): Promise<ProviderResult> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  // A chamada compete com o temporizador: o gateway responde no prazo mesmo que o `fetch`
+  // injetado ignore o sinal de cancelamento ou que a leitura do corpo fique pendente.
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(
+        new LhError('provider_error', `provedor sem resposta em ${timeoutMs} ms (tempo limite)`, {
+          providerTimeout: true,
+          timeoutMs,
+        }),
+      );
+    }, timeoutMs);
+  });
+
+  const work = executeProviderCall(request, env, fetchImpl, controller.signal);
+  // Se o prazo vencer primeiro, `work` pode rejeitar depois (cancelamento): a rejeição
+  // tardia já foi tratada pelo vencedor da corrida e não deve virar rejeição não tratada.
+  work.catch(() => undefined);
+
+  try {
+    return await Promise.race([work, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function executeProviderCall(
+  request: ProviderRequest,
+  env: Env,
+  fetchImpl: typeof fetch,
+  signal: AbortSignal,
 ): Promise<ProviderResult> {
   const body: Record<string, unknown> = {
     model: MODEL,
@@ -110,6 +161,7 @@ export async function callProvider(
         'anthropic-version': API_VERSION,
       },
       body: JSON.stringify(body),
+      signal,
     });
   } catch (cause) {
     throw new LhError(

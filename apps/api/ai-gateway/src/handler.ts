@@ -40,6 +40,8 @@ export interface GatewayDeps {
   readonly idempotency: IdempotencyStore<AiResponseEnvelope>;
   /** Cache obrigatório de `/ai/research`, por consulta normalizada (Anexo I, Parte 1). */
   readonly researchCache: IdempotencyStore<AiResponseEnvelope>;
+  /** Prazo do provedor em ms. Ausente = `PROVIDER_TIMEOUT_MS`. Existe para testes. */
+  readonly providerTimeoutMs?: number;
 }
 
 export function createDeps(
@@ -122,6 +124,7 @@ export async function handleRequest(
       prepared.request,
       deps.env,
       deps.fetch,
+      deps.providerTimeoutMs,
     );
     const finishedAt = deps.now();
 
