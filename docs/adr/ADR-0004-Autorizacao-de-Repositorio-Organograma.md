@@ -109,8 +109,22 @@ com o alcance da §4.1 acima. Em especial e sem prejuízo das demais:
 
 - **D3'.** Fica autorizada a criação de **um** repositório, **privado**, destinado exclusivamente ao
   Sistema de Auditoria do Organograma de Cabedelo/PB.
-- **D3'.1 — Visibilidade.** O repositório é **privado desde a criação** e assim permanece. Tornar o
-  repositório público exige nova ADR. Fundamento: tratamento de dados pessoais de servidores.
+- **D3'.1 — Visibilidade.** *Dispositivo alterado por decisão do fundador em 2026-11-05.* O
+  repositório designado é **público** durante o desenvolvimento, e o fundador o tornará privado
+  quando o projeto estiver pronto.
+  **Ressalva técnica registrada, e não acolhida, na forma da regra IA-9:** tornar o repositório
+  privado depois **não despublica** o que já foi enviado — clones, forks, o índice de busca de
+  código do GitHub e raspadores retêm o que esteve público, e o histórico do git preserva o que
+  for removido em commit posterior. O fechamento futuro, portanto, **não** é controle de
+  exposição para o conteúdo já publicado.
+  **Controle compensatório, obrigatório enquanto o repositório for público:** a proteção deixa de
+  depender do fechamento futuro e passa a ser a vedação absoluta da D3'.2, verificada
+  automaticamente. Nenhum dado pessoal pode ser versionado em instante algum, nem em caráter
+  temporário, nem em branch, nem em commit a ser corrigido depois.
+- **D3'.1-a — Verificação automática.** O repositório mantém, desde o primeiro commit, guarda que
+  bloqueia no CI (a cada push e pull request) CPF, matrícula de servidor, e-mail pessoal,
+  credencial, planilha e PDF. A guarda é rede de segurança, não dispensa do cuidado, e sua
+  remoção ou desativação exige nova ADR.
 - **D3'.2 — Conteúdo vedado.** Não são versionados: planilhas e documentos de origem (`/data`), nomes
   ou e-mails de pessoas, segredos e credenciais. Fixtures de teste são anonimizadas.
 - **D3'.3 — Fonte única do Organograma.** O repositório autorizado é, para o Organograma, a única
