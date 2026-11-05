@@ -122,9 +122,18 @@ com o alcance da §4.1 acima. Em especial e sem prejuízo das demais:
 - **D3'.5 — Corpus normativo aplicável.** O Organograma **não** é regido pela Especificação Oficial do
   LHI, pelo Plano Diretor 2.0, pelo Anexo Técnico I nem pelas Ordens de Execução do Legal Health. Rege-se
   por seu próprio documento normativo e pelas ADRs que vier a produzir, em numeração própria.
-- **D3'.6 — Preenchimento do endereço.** O endereço do repositório autorizado será registrado neste
-  dispositivo quando criado, por homologação do fundador, à maneira da D6.1 da ADR-0001.
-  Endereço: **`<a preencher na homologação>`**.
+- **D3'.6 — Identificação do repositório.** O endereço do repositório autorizado é
+  **<https://github.com/igorsalomaoadv/SEAD>** (identificador: `igorsalomaoadv/SEAD`).
+  *Campo preenchido por designação do fundador, 2026-11-05, à maneira da D6.1 da ADR-0001.*
+  O repositório fica sob conta **externa à organização `legalhealth`**, o que reforça — e não
+  apenas satisfaz — a separação de perímetros desta ADR.
+- **D3'.7 — Verificações pendentes de homologação.** Antes do primeiro commit de produto, devem
+  ser confirmados: (i) que o repositório é **privado** (D3'.1); (ii) que o `.gitignore` exclui
+  `/data` e todo arquivo com dados pessoais (D3'.2); (iii) que a credencial de trabalho alcança
+  o repositório. Nenhuma dessas verificações foi possível em 2026-11-05: a credencial do GitHub
+  da sessão alcança apenas a organização `legalhealth`, e o acesso a `igorsalomaoadv/SEAD` foi
+  recusado. **Enquanto a visibilidade privada não for confirmada, nenhum dado de servidor pode
+  ser versionado.**
 
 ## 5. Justificativa técnica
 
